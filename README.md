@@ -47,7 +47,7 @@ pnpm install
 bash
 复制
 pnpm dev
-打开浏览器，访问 http://localhost:3000 以查看应用。
+打开浏览器，访问 http://localhost:5173 以查看应用。
 
 配置
 项目使用了以下工具进行配置：
