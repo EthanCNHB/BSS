@@ -1,18 +1,27 @@
-// store/modules/textbook.ts
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import useStudentStore from '@/store/modules/student' // 引入用户store
+import { Textbook } from './type'
 
 export const useTextbookStore = defineStore('textbook', {
   state: () => ({
-    textbooks: [] as Array<any>, // 存储教材列表
-    currentTextbook: null as any, // 存储当前选中的教材
+    textbooks: [] as Array<any>,
+    currentTextbook: null as any,
   }),
 
   actions: {
-    // 获取所有教材
+    // 请求前添加 Authorization Header
     async fetchTextbooks() {
       try {
-        const response = await axios.get('http://localhost:8080/textbook/list')
+        const userStore = useStudentStore()
+        const token = userStore.token // 获取 token
+
+        // 添加 Authorization 头部
+        const response = await axios.get('http://localhost:8080/textbook/list', {
+          headers: {
+            Authorization: `Bearer ${token}`, // 在请求头中携带 token
+          },
+        })
         this.textbooks = response.data.data
       } catch (error) {
         console.error('获取教材列表失败', error)
@@ -22,37 +31,47 @@ export const useTextbookStore = defineStore('textbook', {
     // 获取单个教材
     async fetchTextbookById(textbookId: number) {
       try {
-        const response = await axios.get(`http://localhost:8080/textbook/${textbookId}`)
+        const userStore = useStudentStore()
+        const token = userStore.token // 获取 token
+
+        const response = await axios.get(`http://localhost:8080/textbook/${textbookId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // 在请求头中携带 token
+          },
+        })
         this.currentTextbook = response.data.data
       } catch (error) {
         console.error('获取教材失败', error)
       }
     },
 
-    // 添加教材
-    async addTextbook(textbook: any) {
+    async addTextbook(newTextbook: Textbook) {
       try {
-        await axios.post('http://localhost:8080/textbook', textbook)
-        this.fetchTextbooks() // 更新教材列表
+        const userStore = useStudentStore()
+        const token = userStore.token // 获取 token
+        const response = await axios.post(`http://localhost:8080/textbook`, newTextbook, {
+          headers: {
+            Authorization: `Bearer ${token}`, // 在请求头中携带 token
+          },
+        })
+        console.log(Headers)
+        this.textbooks.push(response.data.data)
       } catch (error) {
-        console.error('添加教材失败', error)
+        console.error('', error)
+        throw error
       }
     },
-
-    // 编辑教材
-    async updateTextbook(textbook: any) {
-      try {
-        await axios.put('http://localhost:8080/textbook', textbook)
-        this.fetchTextbooks() // 更新教材列表
-      } catch (error) {
-        console.error('更新教材失败', error)
-      }
-    },
-
     // 删除教材
     async deleteTextbook(textbookId: number) {
       try {
-        await axios.delete(`http://localhost:8080/textbook/${textbookId}`)
+        const userStore = useStudentStore()
+        const token = userStore.token // 获取 token
+
+        await axios.delete(`http://localhost:8080/textbook/${textbookId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // 在请求头中携带 token
+          },
+        })
         this.fetchTextbooks() // 更新教材列表
       } catch (error) {
         console.error('删除教材失败', error)

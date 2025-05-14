@@ -2,50 +2,68 @@ import router from './router'
 import nprogress from 'nprogress' // 导入进度条库
 import 'nprogress/nprogress.css' // 导入进度条样式
 import pinia from './store' // 导入状态管理库
-import useUserStore from './store/modules/user' // 导入用户状态模块
+import { useUserStore } from './store/modules/user' // 导入用户状态模块
 import setting from './setting' // 导入应用设置
 
 let userStore = useUserStore(pinia) // 创建用户状态实例
-let username = userStore.state.username // 获取当前用户名
+
+// 定义无需登录即可访问的白名单页面
+const whiteList = ['/login', '/register']
 
 // 全局前置守卫
 router.beforeEach(async (to, from, next) => {
-  // 设置文档标题
   document.title = to.meta.title + ' | ' + setting.title
-  nprogress.start() // 开始进度条
+  nprogress.start()
 
-  let token = userStore.state.token // 获取用户令牌
+  const token = userStore.token // 获取当前的token
+  const role = userStore.role // 获取当前用户的角色
 
+  // 判断是否需要登录
   if (token) {
-    // 如果用户已登录
-    if (to.path === '/login') {
-      // 如果要访问登录页
-      next({ path: '/' }) // 重定向到首页
+    // 已登录
+    if (to.path === '/login' || to.path === '/register') {
+      // 如果登录后尝试访问登录页或注册页，跳首页
+      next({ path: '/' })
     } else {
-      if (username) {
-        // 如果用户信息存在
-        next() // 继续导航
+      // 已登录并访问其他页面
+      if (role) {
+        // 如果用户信息存在，检查是否有访问权限
+        if (hasPermission(role, to)) {
+          next()
+        } else {
+          next({ path: '/403' }) // 如果没有权限，跳转到403页面
+        }
       } else {
         try {
-          await userStore.userInfo() // 获取用户信息
-          next() // 获取成功，继续导航
+          await userStore.getUserInfo() // 获取用户信息
+          if (hasPermission(role, to)) {
+            next()
+          } else {
+            next({ path: '/403' }) // 如果没有权限，跳转到403页面
+          }
         } catch (error) {
-          userStore.userLogout() // 获取失败，执行登出
-          next({ path: '/login', query: { redirect: to.path } }) // 重定向到登录页
+          userStore.logout() // 获取失败则登出
+          next({ path: '/login', query: { redirect: to.path } })
         }
       }
     }
   } else {
-    // 如果用户未登录
-    if (to.path === '/login') {
-      next() // 继续访问登录页
+    // 未登录
+    if (whiteList.includes(to.path)) {
+      next() // 白名单直接放行
     } else {
-      next({ path: '/login', query: { redirect: to.path } }) // 重定向到登录页
+      next({ path: '/login', query: { redirect: to.path } }) // 跳转登录页
     }
   }
 })
 
+// 判断用户角色是否有权限访问目标路由
+const hasPermission = (role: string, to: any) => {
+  const routeRoles = to.meta.roles || []
+  return routeRoles.includes(role) || routeRoles.length === 0 // 如果没有角色限制，默认可以访问
+}
+
 // 全局后置守卫
-router.afterEach((to, from) => {
-  nprogress.done() // 结束进度条
+router.afterEach(() => {
+  nprogress.done()
 })

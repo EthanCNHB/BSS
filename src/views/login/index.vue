@@ -9,26 +9,28 @@
       <el-form-item prop="username">
         <el-input v-model="loginForm.username" placeholder="用户名">
           <template #prefix>
-            <el-icon>
-              <User />
-            </el-icon>
+            <el-icon><User /></el-icon>
           </template>
         </el-input>
       </el-form-item>
+
       <el-form-item prop="password">
         <el-input type="password" v-model="loginForm.password" placeholder="密码" show-password>
           <template #prefix>
-            <el-icon>
-              <Lock />
-            </el-icon>
+            <el-icon><Lock /></el-icon>
           </template>
         </el-input>
       </el-form-item>
+
       <el-form-item>
         <el-button class="login_btn" type="primary" size="large" @click="login">
           <el-icon><Unlock /></el-icon>
           &nbsp; 登录
         </el-button>
+      </el-form-item>
+
+      <el-form-item>
+        <el-button type="text" @click="goToRegister">没有账号？去注册</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -36,85 +38,66 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import logoImg from '@/assets/images/logo.png'
-import useUserStore from '@/store/modules/user'
 import { useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
-import { getTime } from '@/utils/time'
+import { User, Lock, Unlock } from '@element-plus/icons-vue'
+import logoImg from '@/assets/images/logo.png'
+import { useUserStore } from '@/store/modules/user'
 
-// 创建用户仓库的实例
 const userStore = useUserStore()
-// 收集登录表单数据
-const loginForm = reactive({
-  username: '20212035',
-  password: 'a123456',
-})
-
-let loginForms = ref()
-
-let loading = ref(false)
-
 const router = useRouter()
 
-// 登录方法定义
+const loginForm = reactive({
+  username: '',
+  password: '',
+})
+
+const loginForms = ref()
+const loading = ref(false)
+
 const login = async () => {
   await loginForms.value.validate()
-
-  loading.value = true // 显示加载动画
+  loading.value = true
 
   try {
-    // 通知仓库发起登录请求
-    const loginResult = await userStore.userLogin(loginForm)
+    const loginResult = await userStore.login(loginForm.username, loginForm.password)
 
-    // 根据返回的状态码处理不同情况
-    if (loginResult === 200) {
-      // 登录成功后，跳转到首页
+    if (loginResult) {
       router.push('/')
-
       ElNotification({
-        title: 'Hi,' + getTime() + '好！',
-        message: '欢迎回来！',
+        title: 'Hi, 欢迎回来！',
+        message: '登录成功，欢迎！',
         type: 'success',
       })
     } else {
-      // 登录失败，提示错误信息
-      let errorMessage
-      switch (loginResult) {
-        case 201:
-          errorMessage = '用户名或密码错误' // 登录失败提示
-          break
-        case 500:
-          errorMessage = '服务器错误，请稍后再试' // 处理服务器错误
-          break
-        default:
-          errorMessage = '登录失败，请检查输入' // 默认提示
-      }
       ElNotification({
         title: '登录失败',
-        message: errorMessage,
+        message: '登录失败，请检查输入或角色权限。',
         type: 'error',
         duration: 2000,
       })
     }
   } catch (error) {
-    // 处理登录请求时的异常
-    console.error('登录发生错误:' + error)
+    console.error('登录发生错误:', error)
     ElNotification({
       title: '登录发生错误',
-      message: '请稍后重试.',
+      message: '请稍后重试。',
       type: 'error',
       duration: 2000,
     })
   }
 }
 
-//表单检验规则
 const rules = {
   username: [
     { required: true, message: '用户名不能为空', trigger: 'blur' },
-    { required: true, min: 5, max: 16, message: '用户名长度在5到16个字符之间', trigger: 'change' },
+    { min: 5, max: 16, message: '用户名长度在5到16个字符之间', trigger: 'change' },
   ],
-  password: [{ required: true, min: 5, max: 1000, message: '密码长度至少为5位最多是1000位', trigger: 'change' }],
+  password: [{ required: true, min: 5, message: '密码长度至少为5位', trigger: 'change' }],
+}
+
+const goToRegister = () => {
+  router.push('/register')
 }
 </script>
 

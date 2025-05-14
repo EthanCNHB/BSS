@@ -4,8 +4,8 @@
     <div class="layout_slider">
       <Logo />
       <el-scrollbar class="scrollbar">
-        <el-menu :default-active="$route.path" backgroud-color="#ffffff" text-color="#2d2736" active-text-color="red">
-          <Menu :menuList="userStore.state.menuRoutes"></Menu>
+        <el-menu :default-active="$route.path" background-color="#ffffff" text-color="#2d2736" active-text-color="red">
+          <Menu :menuList="filteredMenuList" />
         </el-menu>
       </el-scrollbar>
     </div>
@@ -22,11 +22,23 @@ import Logo from './logo/index.vue'
 import Menu from './menu/index.vue'
 import Main from './main/index.vue'
 import Tabbar from './tabbar/index.vue'
-//获取用户相关的小仓库
-import useUserStore from '@/store/modules/user'
-let userStore = useUserStore()
+import { useUserStore } from '@/store/modules/user' // 获取用户状态
+import { computed } from 'vue'
 
-let $route = useRoute()
+// 获取用户状态小仓库
+const userStore = useUserStore()
+const $route = useRoute()
+
+// 根据角色过滤菜单列表
+const filteredMenuList = computed(() => {
+  const role = userStore.role // 获取当前用户角色
+  return userStore.menuRoutes.filter((item: any) => {
+    if (!item.meta.roles || item.meta.roles.includes(role)) {
+      return true
+    }
+    return false
+  })
+})
 </script>
 
 <style scoped lang="scss">
