@@ -43,6 +43,7 @@ const $router = useRouter()
 
 const goRoute = (item: { path: string }) => {
   // 确保 item 具有一个 path 属性，并进行路由跳转
+  console.log(item)
   if (item?.path) {
     $router.push(item.path) // 路由跳转
   }

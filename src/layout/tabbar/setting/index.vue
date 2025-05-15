@@ -1,11 +1,11 @@
 <template>
-  <el-button type="primary" size="small" icon="Refresh" @click="updateRefsh"></el-button>
-  <el-button type="primary" size="small" icon="Setting" @click=""></el-button>
-  <img :src="userStore.state.avatar" alt="" style="width: 24px; height: 24px; margin: 10px; border-radius: 50%" />
+  <el-button type="primary" size="small" icon="Refresh" @click="updateRefsh" />
+  <el-button type="primary" size="small" icon="Setting" />
+  <img :src="userStore.avatar" alt="avatar" class="user-avatar" />
   <!-- 下拉菜单 -->
   <el-dropdown>
     <span class="el-dropdown-link">
-      {{ userStore.state.username }}
+      {{ userStore.username }}
       <el-icon class="el-icon--right">
         <arrow-down />
       </el-icon>
@@ -20,24 +20,39 @@
 
 <script setup lang="ts">
 import useLayOutSettingStore from '@/store/modules/setting'
-import useUserStore from '@/store/modules/user'
+import { useUserStore } from '@/store/modules/user'
 import { useRouter } from 'vue-router'
-let layOutSettingStore = useLayOutSettingStore()
-//获取用户相关小仓库
-let userStore = useUserStore()
-//刷新按钮回调
+
+const layOutSettingStore = useLayOutSettingStore()
+const userStore = useUserStore()
+const router = useRouter()
+
+// 刷新按钮回调
 const updateRefsh = () => {
   layOutSettingStore.refsh = !layOutSettingStore.refsh
 }
-let $router = useRouter()
-//退出登录的点击回调
+
+// 退出登录回调
 const logout = () => {
-  //第一件事情：向服务器发送请求
-  userStore.userLogout()
-  //第二件事情：仓库当中关于用于相关的数据清空
-  //第三件事情: 跳转到登录界面
-  $router.push({ path: '/login' })
+  userStore.logout()
+  router.push({ path: '/login' })
 }
 </script>
 
-<style scoped></style>
+<style scoped lang="scss">
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin: 0 10px;
+  object-fit: cover;
+}
+.el-dropdown-link {
+  cursor: pointer;
+  color: #333;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+</style>

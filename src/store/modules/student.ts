@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { reactive, computed } from 'vue'
 import axios from 'axios'
-import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
+import { GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { ElMessage } from 'element-plus'
 
 const useStudentStore = defineStore('student', {
@@ -13,23 +13,6 @@ const useStudentStore = defineStore('student', {
   }),
 
   actions: {
-    // 用户登录
-    async userLogin(username: string, password: string) {
-      try {
-        const response = await axios.post('http://localhost:8080/student/login', { username, password })
-        if (response.data.code === 0) {
-          this.token = response.data.data
-          SET_TOKEN(this.token) // 将 token 存储到 localStorage
-          ElMessage.success('登录成功')
-        } else {
-          ElMessage.error('登录失败：' + response.data.message)
-        }
-      } catch (error) {
-        ElMessage.error('登录请求错误')
-        console.error(error)
-      }
-    },
-
     // 获取学生信息
     async fetchStudentInfo() {
       try {

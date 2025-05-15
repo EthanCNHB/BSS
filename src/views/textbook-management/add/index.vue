@@ -28,8 +28,8 @@
 
         <el-form-item label="状态" prop="status">
           <el-select v-model="form.status" placeholder="请选择状态">
-            <el-option label="Available" value="Available" />
-            <el-option label="Unavailable" value="Unavailable" />
+            <el-option label="上架" value="上架" />
+            <el-option label="下架" value="下架" />
           </el-select>
         </el-form-item>
 
@@ -55,7 +55,7 @@ const form = ref({
   publisher: '',
   author: '',
   price: 0,
-  status: 'Available',
+  status: '',
 })
 
 const formRef = ref()
@@ -87,7 +87,7 @@ const resetForm = () => {
     publisher: '',
     author: '',
     price: 0,
-    status: 'Available',
+    status: '',
   }
   formRef.value.resetFields()
 }

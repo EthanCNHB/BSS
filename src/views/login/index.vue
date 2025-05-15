@@ -43,13 +43,14 @@ import { ElNotification } from 'element-plus'
 import { User, Lock, Unlock } from '@element-plus/icons-vue'
 import logoImg from '@/assets/images/logo.png'
 import { useUserStore } from '@/store/modules/user'
+import { jumpByRole } from '@/utils/jump'
 
 const userStore = useUserStore()
 const router = useRouter()
 
 const loginForm = reactive({
-  username: '',
-  password: '',
+  username: '20212035',
+  password: 'a123456',
 })
 
 const loginForms = ref()
@@ -60,10 +61,9 @@ const login = async () => {
   loading.value = true
 
   try {
-    const loginResult = await userStore.login(loginForm.username, loginForm.password)
-
-    if (loginResult) {
-      router.push('/')
+    const success = await userStore.doLogin(loginForm.username, loginForm.password)
+    if (success) {
+      jumpByRole(router, userStore.role)
       ElNotification({
         title: 'Hi, 欢迎回来！',
         message: '登录成功，欢迎！',
@@ -72,19 +72,21 @@ const login = async () => {
     } else {
       ElNotification({
         title: '登录失败',
-        message: '登录失败，请检查输入或角色权限。',
+        message: '未知角色或权限错误！',
         type: 'error',
         duration: 2000,
       })
     }
-  } catch (error) {
-    console.error('登录发生错误:', error)
+  } catch (error: any) {
+    console.error('登录出错:', error)
     ElNotification({
-      title: '登录发生错误',
-      message: '请稍后重试。',
+      title: '登录失败',
+      message: error.response?.data?.msg || '服务器异常，请稍后重试',
       type: 'error',
       duration: 2000,
     })
+  } finally {
+    loading.value = false
   }
 }
 

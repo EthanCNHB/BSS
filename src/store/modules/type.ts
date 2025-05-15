@@ -45,3 +45,37 @@ export interface Statistics {
   completedReservations: number // 已完成征订数量
   pendingReservations: number // 待处理征订数量
 }
+
+// 学生信息接口
+export interface StudentInfo {
+  id: number // 学生ID
+  username: string // 学号或用户名
+  name: string // 姓名
+  gender: '男' | '女' // 性别
+  collegeName: string // 学院名称
+  majorName: string // 专业名称
+  phone: string // 联系方式
+  email: string // 邮箱
+}
+
+// 教师信息接口
+export interface TeacherInfo {
+  id: number // 教师ID
+  username: string // 教工号或用户名
+  name: string // 姓名
+  gender: '男' | '女' // 性别
+  collegeName: string // 所属学院
+  title: string // 职称（如副教授、讲师）
+  phone: string // 联系方式
+  email: string // 邮箱
+}
+
+// 管理员信息接口
+export interface AdminInfo {
+  id: number // 管理员ID
+  username: string // 用户名
+  name: string // 姓名
+  role: 'admin' | 'college-admin' // 管理角色
+  phone: string // 联系方式
+  email: string // 邮箱
+}
