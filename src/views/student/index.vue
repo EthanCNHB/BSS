@@ -12,7 +12,7 @@
       </template>
 
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="用户名">{{ info?.username }}</el-descriptions-item>
+        <el-descriptions-item label="学号">{{ info?.username }}</el-descriptions-item>
         <el-descriptions-item label="姓名">{{ info?.name }}</el-descriptions-item>
         <el-descriptions-item label="学院">{{ info?.collegeName }}</el-descriptions-item>
         <el-descriptions-item label="专业">{{ info?.majorName }}</el-descriptions-item>
@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import useStudentStore from '@/store/modules/student'
+import { useStudentStore } from '@/store/modules/student'
 import { ElMessage } from 'element-plus'
 import type { StudentInfo } from '@/store/modules/type'
 

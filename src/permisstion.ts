@@ -15,44 +15,40 @@ router.beforeEach(async (to, from, next) => {
   document.title = to.meta.title + ' | ' + setting.title
   nprogress.start()
 
-  const token = userStore.token // 获取当前的token
-  const role = userStore.role // 获取当前用户的角色
+  const token = userStore.token
+  const role = userStore.role
 
-  // 判断是否需要登录
   if (token) {
-    // 已登录
     if (to.path === '/login' || to.path === '/register') {
-      // 如果登录后尝试访问登录页或注册页，跳首页
       next({ path: '/' })
-    } else {
-      // 已登录并访问其他页面
-      if (role) {
-        // 如果用户信息存在，检查是否有访问权限
-        if (hasPermission(role, to)) {
-          next()
-        } else {
-          next({ path: '/403' }) // 如果没有权限，跳转到403页面
-        }
-      } else {
-        try {
-          await userStore.getUserInfo() // 获取用户信息
-          if (hasPermission(role, to)) {
-            next()
-          } else {
-            next({ path: '/403' }) // 如果没有权限，跳转到403页面
-          }
-        } catch (error) {
-          userStore.logout() // 获取失败则登出
-          next({ path: '/login', query: { redirect: to.path } })
-        }
+      return
+    }
+
+    // 如果 role 为空，就调用 restoreSession（它会从本地读 token/role 并拉 profile）
+    if (!role) {
+      try {
+        await userStore.restoreSession()
+      } catch {
+        userStore.logout()
+        next({ path: '/login', query: { redirect: to.path } })
+        return
       }
     }
-  } else {
-    // 未登录
-    if (whiteList.includes(to.path)) {
-      next() // 白名单直接放行
+
+    // 拿到最新的 role
+    const currentRole = userStore.role
+
+    // 权限校验
+    if (hasPermission(currentRole, to)) {
+      next()
     } else {
-      next({ path: '/login', query: { redirect: to.path } }) // 跳转登录页
+      next({ path: '/403' })
+    }
+  } else {
+    if (whiteList.includes(to.path)) {
+      next()
+    } else {
+      next({ path: '/login', query: { redirect: to.path } })
     }
   }
 })

@@ -1,5 +1,5 @@
 export const constantRoute = [
-  // 登录 & 注册
+  // —— 公共页 —— //
   {
     path: '/login',
     component: () => import('@/views/login/index.vue'),
@@ -13,139 +13,271 @@ export const constantRoute = [
     meta: { title: '注册', hidden: true, icon: 'Edit' },
   },
 
-  // 所有人统一主页
+  // —— 主框架 & 首页 —— //
   {
     path: '/',
     component: () => import('@/layout/index.vue'),
     name: 'layout',
-    meta: { title: '', hidden: false, icon: '' },
     redirect: '/home',
+    meta: { hidden: false },
     children: [
       {
         path: '/home',
         component: () => import('@/views/home/index.vue'),
         name: 'home',
-        meta: { title: '首页', hidden: false, icon: 'House' },
+        meta: { title: '首页', icon: 'House', roles: 'teacher,student,admin' },
+      },
+    ],
+  },
+  //学院管理员主页
+  {
+    path: '/collge-management',
+    component: () => import('@/layout/index.vue'),
+    name: 'collegeManagementHome',
+    meta: { title: '主页', icon: 'House', roles: ['collegeAdmin'] },
+    children: [
+      {
+        path: '/collegeHome',
+        component: () => import('@/views/college-admin/home.vue'),
+        name: 'collegeHome',
+        meta: { title: '管理员首页', icon: 'House' },
+      },
+    ],
+  },
+  // —— 课程管理（教师） —— //
+  {
+    path: '/course-teacher',
+    component: () => import('@/layout/index.vue'),
+    name: 'teacherCourseManagement',
+    meta: { title: '课程管理', icon: 'Notebook', roles: ['teacher'] },
+    children: [
+      {
+        path: '/list',
+        component: () => import('@/views/course-teacher/listOnly.vue'),
+        name: 'teacherCourseList',
+        meta: { title: '我的课程', icon: 'List' },
+      },
+      {
+        path: '/edit',
+        component: () => import('@/views/course-teacher/editOnly.vue'),
+        name: 'teacherCourseEdit',
+        meta: { title: '新增课程', icon: 'CirclePlus' },
       },
     ],
   },
 
-  // 教材管理（管理员、教师）
+  // —— 课程管理（管理员） —— //
+  {
+    path: '/course-management',
+    component: () => import('@/layout/index.vue'),
+    name: 'courseManagement',
+    redirect: '/course-management/list',
+    meta: { title: '课程管理', icon: 'Notebook', roles: ['admin', 'collegeAdmin'] },
+    children: [
+      {
+        path: 'list',
+        component: () => import('@/views/course-management/list.vue'),
+        name: 'courseList',
+        meta: { title: '课程列表', icon: 'List' },
+      },
+      {
+        path: 'edit',
+        component: () => import('@/views/course-management/edit.vue'),
+        name: 'courseEdit',
+        meta: { title: '新增/编辑课程', icon: 'CirclePlus' },
+      },
+    ],
+  },
+
+  // —— 教材管理（管理员、教师） —— //
   {
     path: '/textbook-management',
     component: () => import('@/layout/index.vue'),
     name: 'textbookManagement',
-    meta: { title: '教材管理', icon: 'Reading', roles: ['admin', 'teacher'] },
     redirect: '/textbook-management/add',
+    meta: { title: '教材管理', icon: 'Reading', roles: ['admin', 'teacher'] },
     children: [
       {
-        path: '/textbook-management/add',
+        path: 'add',
         component: () => import('@/views/textbook-management/add/index.vue'),
         name: 'textbookAdd',
-        meta: { title: '添加教材', hidden: false, icon: 'CirclePlus' },
+        meta: { title: '添加教材', icon: 'CirclePlus' },
       },
       {
-        path: '/textbook-management/edit',
+        path: 'edit',
         component: () => import('@/views/textbook-management/edit/index.vue'),
         name: 'textbookEdit',
-        meta: { title: '编辑教材', hidden: false, icon: 'Edit' },
+        meta: { title: '编辑教材', icon: 'Edit' },
+      },
+      {
+        path: 'list',
+        component: () => import('@/views/textbook-management/list/index.vue'),
+        name: 'textbookList',
+        meta: { title: '教材列表', icon: 'List' },
       },
     ],
   },
 
-  // 征订管理
+  // —— 征订管理（学生） —— //
   {
     path: '/subscription-management',
     component: () => import('@/layout/index.vue'),
-    name: '征订管理',
-    meta: { title: '征订管理', icon: 'Tickets', roles: ['admin', 'student'] },
-    redirect: '/subscription-management/index',
+    name: 'subscriptionManagement',
+    redirect: '/subscription-management/list',
+    meta: { title: '征订管理', icon: 'Tickets', roles: ['student'] },
     children: [
       {
-        path: '/subscription-management/index',
-        component: () => import('@/views/subscription-management/index.vue'),
-        name: 'subscriptionManagement',
-        meta: { title: '征订', icon: 'DocumentAdd', hidden: false },
+        path: 'list',
+        component: () => import('@/views/subscription-management/list.vue'),
+        name: 'subscriptionList',
+        meta: { title: '征订列表', icon: 'DocumentList' },
       },
       {
-        path: '/subscription-management/order',
+        path: 'order',
         component: () => import('@/views/subscription-management/order.vue'),
         name: 'orderManagement',
-        meta: { title: '订单', icon: 'Ticket', hidden: false },
+        meta: { title: '订单管理', icon: 'Ticket' },
       },
     ],
   },
 
-  // 学院管理员（实为管理员角色下的功能模块）
+  // —— 选课管理（学生） —— //
   {
-    path: '/college-admin',
+    path: '/course-selection',
     component: () => import('@/layout/index.vue'),
-    name: '学院管理员后台',
-    meta: { title: '学院管理员后台', icon: 'School', roles: ['admin'] },
+    name: 'courseSelection',
+    redirect: '/course-selection/list',
+    meta: { title: '选课管理', icon: 'Select', roles: ['student'] },
     children: [
       {
-        path: '/college-admin/report-reservation',
-        component: () => import('@/views/college-admin/report-reservation.vue'),
-        name: 'ReportReservation',
-        meta: { title: '征订管理填报', hidden: false },
+        path: 'list',
+        component: () => import('@/views/course-selection/list.vue'),
+        name: 'courseSelectionList',
+        meta: { title: '我的课程', icon: 'List' },
       },
       {
-        path: '/college-admin/inventory',
-        component: () => import('@/views/college-admin/inventory.vue'),
-        name: 'InventoryManagement',
-        meta: { title: '教材库存管理', hidden: false },
+        path: 'enroll',
+        component: () => import('@/views/course-selection/enroll.vue'),
+        name: 'courseEnroll',
+        meta: { title: '选课', icon: 'DocumentAdd' },
       },
     ],
   },
 
-  // 统计分析（管理员、教师）
-  {
-    path: '/statistics',
-    component: () => import('@/layout/index.vue'),
-    name: '统计分析',
-    meta: { title: '统计分析', icon: 'Histogram', roles: ['admin', 'teacher'] },
-    children: [
-      {
-        path: '/statistics',
-        component: () => import('@/views/statistics/index.vue'),
-        name: 'statisticsPage',
-        meta: { title: '统计分析', icon: 'Histogram', hidden: false },
-      },
-    ],
-  },
-  //学生信息管理
+  // —— 学生信息（学生） —— //
   {
     path: '/student',
     component: () => import('@/layout/index.vue'),
-    name: 'student',
+    name: 'studentInfo',
     meta: { title: '个人信息', icon: 'User', roles: ['student'] },
     children: [
       {
-        path: '/student/index',
+        path: 'profile',
         component: () => import('@/views/student/index.vue'),
-        name: 'studentInfo',
-        meta: { title: '个人信息', icon: 'UserFilled', hidden: false },
+        name: 'studentProfile',
+        meta: { title: '个人资料', icon: 'UserFilled' },
       },
     ],
   },
 
-  // 通用错误页面
+  // —— 教师信息（教师） —— //
   {
-    path: '/404',
-    component: () => import('@/views/404/index.vue'),
-    name: '404',
-    meta: { title: '404', hidden: true },
+    path: '/teacher',
+    component: () => import('@/layout/index.vue'),
+    name: 'teacherInfo',
+    meta: { title: '个人信息', icon: 'User', roles: ['teacher'] },
+    children: [
+      {
+        path: 'profile',
+        component: () => import('@/views/teacher/index.vue'),
+        name: 'teacherProfile',
+        meta: { title: '个人资料', icon: 'UserFilled' },
+      },
+    ],
   },
+
+  // —— 管理员后台（xueyuan管理员） —— //
   {
-    path: '/403',
-    component: () => import('@/views/403/index.vue'),
-    name: '403',
-    meta: { title: '403', hidden: true },
+    path: '/admin',
+    component: () => import('@/layout/index.vue'),
+    name: 'Admin',
+    meta: { title: '管理员后台', icon: 'School', roles: ['admin'] },
+    children: [
+      {
+        path: 'report',
+        component: () => import('@/views/admin/report-reservation.vue'),
+        name: 'ReportReservation',
+        meta: { title: '征订报告', icon: 'DocumentAdd' },
+      },
+      {
+        path: 'inventory',
+        component: () => import('@/views/admin/InventoryManagement.vue'),
+        name: 'InventoryManagement',
+        meta: { title: '库存管理', icon: 'Box' },
+      },
+
+      {
+        path: 'colleges',
+        component: () => import('@/views/admin/colleges.vue'),
+        name: 'CollegesManagement',
+        meta: { title: '学院管理', icon: 'OfficeBuilding' },
+      },
+    ],
   },
+
   {
-    path: '/:pathMatch(.*)*',
-    redirect: '/404',
-    name: 'Any',
-    meta: { title: '任意路由', hidden: true },
+    path: '/college-admin',
+    component: () => import('@/layout/index.vue'),
+    name: 'collegeAdmin',
+    meta: { title: '学院管理员后台', icon: 'School', roles: ['collegeAdmin'] },
+    children: [
+      {
+        path: 'majors',
+        component: () => import('@/views/college-admin/majors.vue'),
+        name: 'MajorsManagement',
+        meta: { title: '专业管理', icon: 'School' },
+      },
+    ],
   },
+
+  {
+    path: '/admin-collegeAdmin',
+    component: () => import('@/layout/index.vue'),
+    name: 'AdminManagement',
+    meta: { title: '学院管理员管理', icon: 'User', roles: ['admin'] },
+    children: [
+      {
+        path: 'CollegeAdminAdd',
+        component: () => import('@/views/college-admin/add.vue'),
+        name: 'CollegeAdminAdd',
+        meta: { title: '注册学院管理员', icon: 'DocumentAdd' },
+      },
+      {
+        path: 'collegemanage',
+        component: () => import('@/views/college-admin/management.vue'),
+        name: 'CollegeManagement',
+        meta: { title: '管理学院管理员', icon: 'Box' },
+      },
+    ],
+  },
+  // —— 统计分析（管理员、教师） —— //
+  {
+    path: '/statistics',
+    component: () => import('@/layout/index.vue'),
+    name: 'statistics',
+    meta: { title: '统计分析', icon: 'Histogram', roles: ['admin', 'teacher'] },
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/statistics/index.vue'),
+        name: 'statisticsPage',
+        meta: { title: '统计分析', icon: 'Histogram' },
+      },
+    ],
+  },
+
+  // —— 错误页面 —— //
+  { path: '/403', component: () => import('@/views/403/index.vue'), name: '403', meta: { hidden: true } },
+  { path: '/404', component: () => import('@/views/404/index.vue'), name: '404', meta: { hidden: true } },
+  { path: '/:pathMatch(.*)*', redirect: '/404', name: 'Any', meta: { hidden: true } },
 ]

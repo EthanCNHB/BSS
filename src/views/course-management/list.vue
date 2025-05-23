@@ -2,25 +2,24 @@
   <div class="home-container">
     <el-card>
       <template #header>
-        <div class="header">教材列表</div>
+        <div class="header">课程列表</div>
       </template>
 
       <!-- 查询区域 -->
       <div class="search-bar">
-        <el-input v-model="searchName" placeholder="请输入教材名称" clearable />
+        <el-input v-model="searchName" placeholder="请输入课程名称" clearable />
         <el-button type="primary" @click="handleSearch">搜索</el-button>
         <el-button @click="resetSearch">重置</el-button>
       </div>
 
-      <!-- 教材表格 -->
-      <el-table :data="paginatedData" style="width: 100%; margin-top: 20px" border>
-        <el-table-column label="教材ID" prop="textbookId" />
-        <el-table-column label="教材名称" prop="name" />
-        <el-table-column label="教材编码" prop="code" />
-        <el-table-column label="出版社" prop="publisher" />
-        <el-table-column label="作者" prop="author" />
-        <el-table-column label="价格" prop="price" />
-        <el-table-column label="状态" prop="status" />
+      <!-- 课程表格 -->
+      <el-table :data="paginatedData" border style="width: 100%; margin-top: 20px">
+        <el-table-column type="index" label="序号" />
+        <el-table-column label="课程ID" prop="courseId" />
+        <el-table-column label="课程名称" prop="courseName" />
+        <el-table-column label="课程代码" prop="courseCode" />
+        <el-table-column label="学分" prop="credit" />
+        <el-table-column label="课程描述" prop="description" />
       </el-table>
 
       <!-- 分页 -->
@@ -30,7 +29,7 @@
         layout="prev, pager, next"
         :current-page="currentPage"
         :page-size="pageSize"
-        :total="filteredTextbooks.length"
+        :total="filteredCourses.length"
         @current-change="handlePageChange"
       />
     </el-card>
@@ -39,9 +38,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useTextbookStore } from '@/store/modules/textbook'
-
-const textbookStore = useTextbookStore()
+import { useCourseStore } from '@/store/modules/course'
+const courseStore = useCourseStore()
 const searchName = ref('')
 const currentPage = ref(1)
 const pageSize = ref(5)
@@ -55,7 +53,7 @@ const calculatePageSize = () => {
 }
 
 onMounted(() => {
-  textbookStore.fetchTextbooks()
+  courseStore.fetchCourses() // 拉取课程数据
   calculatePageSize()
   window.addEventListener('resize', calculatePageSize)
 })
@@ -73,15 +71,15 @@ const handlePageChange = (newPage: number) => {
   currentPage.value = newPage
 }
 
-const filteredTextbooks = computed(() => {
-  if (!searchName.value) return textbookStore.textbooks
-  return textbookStore.textbooks.filter((book: any) => book.name.includes(searchName.value))
+const filteredCourses = computed(() => {
+  if (!searchName.value) return courseStore.courses
+  return courseStore.courses.filter((course: any) => course.courseName.includes(searchName.value))
 })
 
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
-  return filteredTextbooks.value.slice(start, end)
+  return filteredCourses.value.slice(start, end)
 })
 </script>
 

@@ -2,15 +2,43 @@
   "files": [],
   "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
   "compilerOptions": {
-    "baseUrl": "./", // 解析非相对模块的基地址，默认是当前目录
+    // 目标 JS 版本，尽量保持与打包工具一致
+    "target": "ESNext",
+
+    // 输出 ES 模块，以支持 import.meta
+    "module": "ESNext",
+
+    // Node 风格的模块解析
+    "moduleResolution": "Node",
+
+    // 支持的标准库，包含浏览器 DOM API
+    "lib": ["ESNext", "DOM"],
+
+    // 开启严格检查
+    "strict": true,
+
+    // 保留 Vue 的 JSX/TSX 语法
+    "jsx": "preserve",
+
+    // 生成 SourceMap，方便调试
+    "sourceMap": true,
+
+    // 路径别名，配合 Vite 中的 alias 保持一致
+    "baseUrl": "./",
     "paths": {
-      //路径映射，相对于baseUrl
       "@/*": ["src/*"]
     },
-    "types": ["element-plus/global"],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types" // 添加自定义类型定义路径
-    ]
-  }
+
+    // 类型声明文件查找位置
+    // "typeRoots": ["./node_modules/@types", "./src/types"],
+
+    // 引入 Vite 自带的环境变量类型声明
+    "types": ["vite/client"]
+  },
+
+  // 要包含的源文件
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "src/types"],
+
+  // 编译时排除的目录
+  "exclude": ["node_modules", "dist", "build"]
 }

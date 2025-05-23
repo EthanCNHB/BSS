@@ -1,11 +1,14 @@
 import { defineStore } from 'pinia'
 
-let useLayOutSettingStore = defineStore('SettingStore', {
-  state: () => {
-    return {
-      fold: false,
-      refsh: false,
-    }
+const useLayOutSettingStore = defineStore('SettingStore', {
+  state: () => ({
+    fold: false,
+    refsh: false,
+  }),
+  actions: {
+    toggleRefsh() {
+      this.refsh = !this.refsh
+    },
   },
 })
 

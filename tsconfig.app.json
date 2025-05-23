@@ -1,18 +1,55 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "esnext",
+    // 编译目标：现代浏览器原生支持 ES2022 特性，Vite 会做兼容处理
+    "target": "ES2022",
+
+    // 输出 ES 模块，以支持 import.meta
+    "module": "ESNext",
+
+    // 开启严格模式检查
     "strict": true,
+
+    // 保留 Vue SFC 中的 JSX/TSX 语法（如果有使用的话）
     "jsx": "preserve",
+
+    // 模块解析同 Node，一致性好
     "moduleResolution": "node",
+
+    // 默认允许默认导入 CommonJS 模块
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // 跳过库文件的类型检查，加快编译
     "skipLibCheck": true,
+
+    // 文件名大小写一致性
     "forceConsistentCasingInFileNames": true,
+
+    // 支持 .vue、.d.ts 声明、环境变量等
+    "lib": ["DOM", "ES2022"],
+
+    // 路径别名，保持与 Vite 配置同步
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+
+    // 用于 project references，如果不需要可去掉
+    "composite": true,
+
+    // 从 Vite 注入的环境变量类型声明
+    "types": ["vite/client"],
+
+    // 支持 JSON 模块导入
+    "resolveJsonModule": true,
+
+    // 生成映射文件，方便调试
+    "sourceMap": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+
+  // 同时识别 .ts/.tsx/.vue/.d.ts
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+
+  // 排除构建产物和依赖
+  "exclude": ["node_modules", "dist", "build"]
 }

@@ -17,9 +17,12 @@ importers:
       axios:
         specifier: ^1.9.0
         version: 1.9.0
+      dayjs:
+        specifier: ^1.11.13
+        version: 1.11.13
       element-plus:
-        specifier: ^2.9.8
-        version: 2.9.8(vue@3.5.13(typescript@5.7.3))
+        specifier: ^2.9.10
+        version: 2.9.10(vue@3.5.13(typescript@5.7.3))
       nprogress:
         specifier: ^0.2.0
         version: 0.2.0
@@ -1025,8 +1028,8 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  element-plus@2.9.8:
-    resolution: {integrity: sha512-srViUaUdfblBKGMeuEPiXxxKlH5aUmKqEwmhb/At9Sj91DbU6od/jYN1955cTnzt3wTSA7GfnZF7UiRX9sdRHg==}
+  element-plus@2.9.10:
+    resolution: {integrity: sha512-W2v9jWnm1kl/zm4bSvCh8aFCVlxvhG3fmqiDZwyd6WQiWGE595J/mpjcCggEr+49QDgIymhXrpPMOPPSARUbng==}
     peerDependencies:
       vue: ^3.2.0
 
@@ -3755,7 +3758,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  element-plus@2.9.8(vue@3.5.13(typescript@5.7.3)):
+  element-plus@2.9.10(vue@3.5.13(typescript@5.7.3)):
     dependencies:
       '@ctrl/tinycolor': 3.6.1
       '@element-plus/icons-vue': 2.3.1(vue@3.5.13(typescript@5.7.3))

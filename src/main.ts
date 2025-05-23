@@ -1,38 +1,56 @@
+// src/main.ts
 import { createApp } from 'vue'
 import App from './App.vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-//@ts-ignore忽略当前文件ts类型的检测否则有红色提示(打包会失败)
-import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import 'virtual:svg-icons-register'
-//引入自定义插件
-import gloalComponent from '@/components'
-import '@/styles/index.scss'
-//引入路由
-import router from './router'
-//引入仓库pinia
-import pinia from './store'
 
+// 自定义全局组件
+import globalComponent from '@/components'
+
+// 样式
+import '@/styles/index.scss'
+
+// 路由
+import router from './router'
+
+// Pinia 状态管理
+import pinia from '@/store'
+
+// 路由鉴权（在路由挂载之后导入，确保拦截器已生效）
+import './permisstion'
+
+// Element Plus 图标
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+
+// 工具函数
+import { formatTime } from '@/utils/time'
+
+// 创建应用
 const app = createApp(App)
 
+// 安装 Element Plus，并设置中文语言
 app.use(ElementPlus, {
   locale: zhCn,
 })
 
-//安装自定义插件
-app.use(gloalComponent)
+// 安装全局组件
+app.use(globalComponent)
 
-//安装pinia
+// 安装 Pinia
 app.use(pinia)
 
-//注册模板路由
+// 安装路由
 app.use(router)
-//引入路由鉴权文件
-import './permisstion'
 
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+// 注册 Element Plus 图标组件
+Object.entries(ElementPlusIconsVue).forEach(([key, component]) => {
   app.component(key, component)
-}
+})
+
+// 挂载工具函数到全局属性
+app.config.globalProperties.$formatTime = formatTime
+
+// 挂载应用
 app.mount('#app')

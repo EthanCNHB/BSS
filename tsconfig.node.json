@@ -1,24 +1,34 @@
 {
   "compilerOptions": {
+    "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-    "target": "ES2022",
-    "lib": ["ES2023"],
-    "module": "ESNext",
-    "skipLibCheck": true,
 
-    /* Bundler mode */
+    // Node 运行环境下，建议加上 “node” 类型
+    "types": ["node"],
+
+    // 输出与运行都用 ESNext，方便 Vite 和最新 Node 特性
+    "target": "ESNext",
+    "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
+
+    // 加上 DOM 类型，以防脚本里用到 window、fetch 等
+    "lib": ["ESNext", "DOM"],
+
+    // 常用严格检查
+    "strict": true,
+    "skipLibCheck": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "moduleDetection": "force",
+
+    // 不 emit 文件，由 Vite 控制输出
     "noEmit": true,
 
-    /* Linting */
-    "strict": true,
+    // 代码质量
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "build/**/*.ts", "scripts/**/*.ts"]
 }

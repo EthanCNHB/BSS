@@ -21,11 +21,6 @@
         <el-table-column label="作者" prop="author" width="150" />
         <el-table-column label="价格" prop="price" width="100" />
         <el-table-column label="状态" prop="status" width="120" />
-        <el-table-column label="操作" width="100">
-          <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleSubscribe(row)">征订</el-button>
-          </template>
-        </el-table-column>
       </el-table>
 
       <!-- 分页 -->
@@ -45,24 +40,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useTextbookStore } from '@/store/modules/textbook'
-import { ElMessageBox, ElMessage } from 'element-plus'
-
-// 模拟添加到订
-const handleSubscribe = (book: any) => {
-  ElMessageBox.confirm(`确定将《${book.name}》添加到征订单中吗？`, '确认征订', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
-  })
-    .then(() => {
-      // TODO: 替换成真实添加逻辑
-      console.log('添加教材到订单：', book)
-      ElMessage.success(`《${book.name}》已添加到订单！`)
-    })
-    .catch(() => {
-      ElMessage.info('已取消操作')
-    })
-}
 
 const textbookStore = useTextbookStore()
 const searchName = ref('')

@@ -1,81 +1,106 @@
-import type { RouteRecordRaw } from 'vue-router'
+// src/types/index.ts
 
-// 用户状态接口
-export interface UserState {
-  token: string | null // 用户token
-  menuRoutes: RouteRecordRaw[] // 用户可访问的路由
-  username: string // 用户名
-  avatar: string // 用户头像
+/** 通用接口返回结构 */
+export interface ApiResponse<T = any> {
+  code: number
+  message: string
+  data: T
 }
 
-// 教材接口
+/** 登录返回体 */
+export interface LoginResult {
+  token: string
+  role: 'admin' | 'collegeAdmin' | 'teacher' | 'student'
+}
+
+/** 教材信息 */
 export interface Textbook {
-  name: string // 教材名称
-  code: string // 教材编码
-  publisher: string // 出版社
-  author: string // 作者
-  price: number // 价格
-  status: string | number // 状态（如在售、下架等）
+  textbookId: number
+  name: string
+  code: string
+  publisher?: string
+  author?: string
+  price: number
+  status?: string
+  stockQuantity: number
 }
 
-// 征订记录接口
-export interface TextbookReservation {
-  reservationId: number // 征订记录ID
-  userId: number // 用户ID
-  textbookId: number // 教材ID
-  textbookName: string // 教材名称
-  quantity: number // 预定数量
-  reservationDate: string // 征订日期
-  status: 'Pending' | 'Completed' | 'Cancelled' // 订单状态
+/** 课程类型，新增 textbooks 字段 */
+export interface Course {
+  courseId: number
+  courseCode: string
+  courseName: string
+  credit?: number
+  courseType?: string
+  description?: string
+  majorId: number
+
+  /** 新增：关联的教材列表 */
+  textbooks?: Textbook[]
 }
 
-// 角色接口
-export type UserRole = 'student' | 'teacher' | 'admin' | 'college-admin'
-
-// 权限接口
-export interface Permission {
-  role: UserRole // 角色类型
-  permissions: string[] // 权限列表（例如，'view-textbook', 'edit-textbook'）
-}
-
-// 统计分析接口
-export interface Statistics {
-  totalTextbooks: number // 总教材数量
-  totalReservations: number // 总征订数量
-  completedReservations: number // 已完成征订数量
-  pendingReservations: number // 待处理征订数量
-}
-
-// 学生信息接口
+/** 学生个人信息 */
 export interface StudentInfo {
-  id: number // 学生ID
-  username: string // 学号或用户名
-  name: string // 姓名
-  gender: '男' | '女' // 性别
-  collegeName: string // 学院名称
-  majorName: string // 专业名称
-  phone: string // 联系方式
-  email: string // 邮箱
+  userId: number
+  username: string
+  studentName: string
+  collegeId: number
+  majorId: number
+  avatar?: string
+  class?: string
+  courses?: Course[]
 }
 
-// 教师信息接口
+/** 教师个人信息 */
 export interface TeacherInfo {
-  id: number // 教师ID
-  username: string // 教工号或用户名
-  name: string // 姓名
-  gender: '男' | '女' // 性别
-  collegeName: string // 所属学院
-  title: string // 职称（如副教授、讲师）
-  phone: string // 联系方式
-  email: string // 邮箱
+  userId: number
+  username: string
+  teacherName: string
+  collegeId: number
+  majorId: number
+  teacherPic?: string
+
+  /** 教师所授课程，也会带上 textbooks 字段 */
+  courses?: Course[]
 }
 
-// 管理员信息接口
-export interface AdminInfo {
-  id: number // 管理员ID
-  username: string // 用户名
-  name: string // 姓名
-  role: 'admin' | 'college-admin' // 管理角色
-  phone: string // 联系方式
-  email: string // 邮箱
+/** 管理员信息 */
+export interface Admin {
+  userId: number
+  username: string
+}
+
+/** 教材预订记录 */
+export interface TextbookReservation {
+  reservationId: number
+  textbookId: number
+  userId: number
+  collegeId: number
+  majorId: number
+  reservationQuantity: number
+  orderDate: string
+  textbookName?: string
+  textbookPrice?: number
+}
+
+/** 专业（Major）类型 */
+export interface Major {
+  majorId: number
+  majorName: string
+  majorDescription?: string
+}
+
+/** 学院（College）类型 */
+export interface College {
+  collegeId: number
+  collegeName: string
+  creationTime: string
+  collegeDescription?: string
+}
+
+/** 学院管理员信息 */
+export interface CollegeAdmin {
+  userId: number
+  username: string
+  collegeId: number
 }

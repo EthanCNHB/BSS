@@ -10,3 +10,9 @@ export const getTime = () => {
   }
   return message
 }
+// utils/time.ts
+import dayjs from 'dayjs'
+
+export function formatTime(value: string | Date, pattern = 'YYYY-MM-DD HH:mm:ss') {
+  return value ? dayjs(value).format(pattern) : ''
+}

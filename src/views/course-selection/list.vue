@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>学员管理员</p>
+    <p>我的课程</p>
   </div>
 </template>
 

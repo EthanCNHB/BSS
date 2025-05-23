@@ -49,8 +49,8 @@ const userStore = useUserStore()
 const router = useRouter()
 
 const loginForm = reactive({
-  username: '20212035',
-  password: 'a123456',
+  username: '',
+  password: '',
 })
 
 const loginForms = ref()

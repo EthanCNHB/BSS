@@ -14,13 +14,18 @@
 
       <!-- 教材表格 -->
       <el-table :data="paginatedData" style="width: 100%; margin-top: 20px" border>
-        <el-table-column label="教材ID" prop="textbookId" />
-        <el-table-column label="教材名称" prop="name" />
-        <el-table-column label="教材编码" prop="code" />
-        <el-table-column label="出版社" prop="publisher" />
-        <el-table-column label="作者" prop="author" />
-        <el-table-column label="价格" prop="price" />
-        <el-table-column label="状态" prop="status" />
+        <el-table-column label="教材ID" prop="textbookId" width="100" />
+        <el-table-column label="教材名称" prop="name" width="180" />
+        <el-table-column label="教材编码" prop="code" width="150" />
+        <el-table-column label="出版社" prop="publisher" width="180" />
+        <el-table-column label="作者" prop="author" width="150" />
+        <el-table-column label="价格" prop="price" width="100" />
+        <el-table-column label="状态" prop="status" width="120" />
+        <el-table-column label="操作" width="100">
+          <template #default="{ row }">
+            <el-button type="primary" size="small" @click="handleSubscribe(row)">征订</el-button>
+          </template>
+        </el-table-column>
       </el-table>
 
       <!-- 分页 -->
@@ -40,6 +45,31 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useTextbookStore } from '@/store/modules/textbook'
+import { ElMessageBox, ElMessage } from 'element-plus'
+import { useReservationStore } from '@/store/modules/textbookReservation'
+
+const reservationStore = useReservationStore()
+
+const handleSubscribe = async (book: any) => {
+  try {
+    await ElMessageBox.confirm(`确定将《${book.name}》添加到征订单中吗？`, '确认征订', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+
+    await reservationStore.addReservation(book.textbookId)
+
+    ElMessage.success(`《${book.name}》已成功添加到订单！`)
+  } catch (err) {
+    if (err !== 'cancel') {
+      console.error('征订失败：', err)
+      ElMessage.error('征订失败，请稍后再试')
+    } else {
+      ElMessage.info('已取消征订操作')
+    }
+  }
+}
 
 const textbookStore = useTextbookStore()
 const searchName = ref('')

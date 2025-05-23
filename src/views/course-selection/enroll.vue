@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>学员管理员二级菜单</p>
+    <p>选课</p>
   </div>
 </template>
 
