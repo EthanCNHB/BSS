@@ -1,8 +1,8 @@
 // src/store/modules/student.ts
-import type { StudentInfo, ApiResponse } from './type'
+import type { StudentInfo, ApiResponse, Course } from './type'
 import { defineStore } from 'pinia'
 import { ElMessage } from 'element-plus'
-import { get, post, put, patch } from '@/utils/request'
+import { get, post, put, patch, del } from '@/utils/request'
 import { GET_TOKEN, REMOVE_TOKEN, SET_TOKEN } from '@/utils/token'
 
 /**
@@ -21,6 +21,13 @@ export const useStudentStore = defineStore('student', {
     isLoggedIn: (state): boolean => !!state.token,
     /** 当前学生信息 */
     getStudentInfo: (state): StudentInfo | null => state.studentInfo,
+    /** 已选课程列表 */
+    selectedCourses: (state): Course[] => state.studentInfo?.courses || [],
+    /** 判断是否已选择指定课程 */
+    isCourseSelected:
+      (state) =>
+      (id: number): boolean =>
+        state.studentInfo?.courses?.some((c) => c.courseId === id) ?? false,
   },
 
   actions: {
@@ -57,11 +64,10 @@ export const useStudentStore = defineStore('student', {
      * ============================
      * - 对应后端：GET /student/studentInfo
      * - 无需传参，后端通过 Token 中的用户名来查询
-     * - 成功后把完整 StudentInfo 存入 state.studentInfo
+     * - 成功后把完整 StudentInfo（包含 userId）存入 state.studentInfo
      */
     async fetchStudentInfo(): Promise<void> {
       try {
-        // get<StudentInfo> 调用后端返回的 Result<Student>，request 工具会自动 unwrap data 字段
         const info = await get<StudentInfo>('/student/studentInfo')
         this.studentInfo = info
       } catch (err: any) {
@@ -84,19 +90,16 @@ export const useStudentStore = defineStore('student', {
         return
       }
       try {
-        // 构造请求体：将 userId 带上，剩余字段用 updated 覆盖
         const payload = {
           userId: this.studentInfo.userId,
-          // 注意：Field 名称要和后端的 Student 实体字段保持一致
           studentName: updated.studentName,
           collegeId: updated.collegeId,
           majorId: updated.majorId,
           avatar: updated.avatar,
-          // 如果 Student 实体里还有其他字段，就在这里补充
+          // 如果 Student 实体里有更多字段，可继续补充
         }
         await put<void>('/student/update', payload)
         ElMessage.success('信息更新成功')
-        // 更新成功后，重新拉取最新信息
         await this.fetchStudentInfo()
       } catch (err: any) {
         ElMessage.error(err.message || '更新失败')
@@ -109,7 +112,6 @@ export const useStudentStore = defineStore('student', {
      * ============================
      * - 对应后端：PATCH /student/updatePwd
      * - 参数格式：{ old_pwd, new_pwd, re_pwd }
-     * - 后端会自动校验旧密码、判断两次新密码是否一致
      */
     async updatePassword(oldPwd: string, newPwd: string, rePwd: string): Promise<void> {
       try {
@@ -128,7 +130,6 @@ export const useStudentStore = defineStore('student', {
      * ============================
      * 五、退出登录
      * ============================
-     * - 清空 Token、studentInfo，并可做其他善后处理
      */
     logout(): void {
       REMOVE_TOKEN()
@@ -142,7 +143,6 @@ export const useStudentStore = defineStore('student', {
      * 六、（可选）获取某个学生信息（管理端使用）
      * ============================
      * - 对应后端：GET /student/{userId}
-     * - 只有在管理后台需要查看指定 student 时才会调用
      */
     async fetchStudentById(userId: number): Promise<StudentInfo | null> {
       try {
@@ -159,7 +159,6 @@ export const useStudentStore = defineStore('student', {
      * 七、（可选）查询所有学生列表（管理端使用）
      * ============================
      * - 对应后端：GET /student/list
-     * - 通常在管理后台列表页调用
      */
     async fetchAllStudents(): Promise<StudentInfo[]> {
       try {
@@ -173,10 +172,68 @@ export const useStudentStore = defineStore('student', {
 
     /**
      * ============================
-     * 八、批量选课（如果后端没有对应接口，则移除或另行实现）
+     * 八、拉取当前学生已选课程（方案 B，需要传 userId）
+     * - 对应后端：GET /student/{studentId}/courses
+     */
+    async fetchSelectedCourses(): Promise<void> {
+      if (!this.studentInfo) {
+        ElMessage.error('请先登录')
+        return
+      }
+      try {
+        const userId = this.studentInfo.userId
+        const list = await get<Course[]>(`/student/${userId}/courses`)
+        this.studentInfo.courses = list
+      } catch (err: any) {
+        ElMessage.error(err.message || '获取课程列表失败')
+      }
+    },
+
+    /**
      * ============================
-     * - 你在原来代码里有对 /students/{userId}/courses 的调用，但后端并未暴露该接口。
-     * - 如果后端后续新增该功能，请在此处按规则调用；否则建议删除此方法或等待后端补充。
+     * 九、选课（单门，方案 B，传 userId）
+     * - 对应后端：POST /student/{studentId}/courses
+     * - 参数格式： [courseId]
+     */
+    async enrollCourse(courseId: number): Promise<void> {
+      if (!this.studentInfo) {
+        ElMessage.error('请先登录')
+        return
+      }
+      try {
+        const userId = this.studentInfo.userId
+        await post<void>(`/student/${userId}/courses`, [courseId])
+        ElMessage.success('选课成功')
+        await this.fetchSelectedCourses()
+      } catch (err: any) {
+        ElMessage.error(err.message || '选课失败')
+      }
+    },
+
+    /**
+     * ============================
+     * 十、退选课程（方案 B，传 userId）
+     * - 对应后端：DELETE /student/{studentId}/courses/{courseId}
+     */
+    async dropCourse(courseId: number): Promise<void> {
+      if (!this.studentInfo) {
+        ElMessage.error('请先登录')
+        return
+      }
+      try {
+        const userId = this.studentInfo.userId
+        await del<void>(`/student/${userId}/courses/${courseId}`)
+        ElMessage.success('退选成功')
+        await this.fetchSelectedCourses()
+      } catch (err: any) {
+        ElMessage.error(err.message || '退选失败')
+      }
+    },
+
+    /**
+     * ============================
+     * （可选）批量选课（方案 B，如果后端支持）
+     * - 对应后端：POST /student/{studentId}/courses
      */
     async selectCourses(courseIds: number[]): Promise<void> {
       if (!this.studentInfo) {
@@ -184,9 +241,10 @@ export const useStudentStore = defineStore('student', {
         return
       }
       try {
-        // 假定后端将来会提供：POST /students/{userId}/courses
-        await post<void>(`/students/${this.studentInfo.userId}/courses`, { courseIds })
+        const userId = this.studentInfo.userId
+        await post<void>(`/student/${userId}/courses`, { courseIds })
         ElMessage.success('选课成功')
+        await this.fetchSelectedCourses()
       } catch (err: any) {
         ElMessage.error(err.message || '选课失败')
       }
