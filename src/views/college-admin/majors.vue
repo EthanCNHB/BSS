@@ -5,9 +5,8 @@
         <div class="header">专业列表</div>
       </template>
 
-      <!-- 展开/收起按钮 -->
-      <div>
-        <!-- 新增按钮 -->
+      <!-- 操作区：新增专业、一键展开/收起 -->
+      <div style="margin-bottom: 20px">
         <el-button type="primary" @click="openAddDialog">新增专业</el-button>
         <div class="collapse-controls">
           <el-button @click="expandAll" size="small" type="primary" class="expand-btn">一键展开</el-button>
@@ -16,13 +15,14 @@
       </div>
 
       <!-- 使用 el-collapse 来显示每个专业 -->
-      <el-collapse v-model="activeNames">
+      <el-collapse v-model="activeNames" class="custom-collapse">
         <el-collapse-item v-for="major in formattedMajors" :key="major.majorId" :title="major.majorName" :name="String(major.majorId)">
           <div class="button-container">
-            <el-button @click="openAddCourseDialog(major.majorId)" size="small" type="success" class="add-course-btn">添加课程</el-button>
+            <el-button @click="openAddCourseDialog(major.majorId)" size="small" type="success">添加课程</el-button>
+            <el-button @click="confirmDeleteMajor(major.majorId)" size="small" type="danger">删除专业</el-button>
           </div>
           <!-- 展示该专业下的课程 -->
-          <el-table v-if="major.courses.length > 0" :data="major.courses" style="width: 100%">
+          <el-table v-if="major.courses.length > 0" :data="major.courses" style="width: 100%; margin-top: 10px" class="custom-table">
             <el-table-column label="课程名称" prop="courseName" />
             <el-table-column label="课程编号" prop="courseCode" />
             <el-table-column label="学分" prop="credit" />
@@ -37,7 +37,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <p v-else>该专业暂无课程</p>
+          <p v-else class="no-courses-text">该专业暂无课程</p>
         </el-collapse-item>
       </el-collapse>
     </el-card>
@@ -67,8 +67,8 @@
       </template>
     </el-dialog>
 
-    <!-- 编辑弹窗 -->
-    <el-dialog title="编辑课程" v-model="editDialogVisible">
+    <!-- 编辑课程弹窗 -->
+    <el-dialog title="编辑课程" v-model="editDialogVisible" width="400px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="课程名称">
           <el-input v-model="form.courseName" />
@@ -93,7 +93,7 @@
     </el-dialog>
 
     <!-- 新增专业弹窗 -->
-    <el-dialog title="新增专业" v-model="addDialogVisible">
+    <el-dialog title="新增专业" v-model="addDialogVisible" width="400px">
       <el-form :model="addForm" label-width="100px">
         <el-form-item label="专业名称">
           <el-input v-model="addForm.majorName" />
@@ -142,9 +142,10 @@ const newCourse = ref({
   majorId: 0, // 绑定专业ID
 })
 
-// 控制新增课程弹窗显示
+// 控制新增专业弹窗显示
 const addDialogVisible = ref(false)
 
+// 控制添加课程弹窗显示
 const addCourseDialogVisible = ref(false)
 
 const requiredRule = { required: true, message: '此项不能为空', trigger: 'blur' }
@@ -161,21 +162,20 @@ const formattedMajors = computed(() => {
   return majorStore.majors.map((major) => {
     return {
       ...major,
-      courses: courseStore.courses.filter((course) => course.majorId === major.majorId), // 过滤该专业的课程
+      courses: courseStore.courses.filter((course) => course.majorId === major.majorId),
     }
   })
 })
 
-// 获取当前学院信息
+// 获取当前学院信息并加载数据
 onMounted(async () => {
-  // 1. 先拿专业列表
+  // 1. 拿到当前学院信息
   const collegeInfo = collegeStore.collegeInfo!
+  // 2. 拉取该学院下的专业列表
   await majorStore.fetchMajorsByCollege(collegeInfo.collegeId)
-
-  // 2. 一次性拉所有课程
+  // 3. 一次性拉所有课程
   await courseStore.fetchCourses()
-
-  // 3. 全部展开
+  // 4. 全部展开
   expandAll()
 })
 
@@ -219,25 +219,29 @@ const submitAddCourse = async () => {
   }
 }
 
-// 打开编辑弹窗，并加载当前行教材数据
+// 打开编辑弹窗，并加载当前行课程数据
 const openEditDialog = (row: any) => {
   form.value = { ...row }
   editDialogVisible.value = true
 }
 
 // 编辑保存按钮
-const saveEdit = () => {
+const saveEdit = async () => {
   const index = courseStore.courses.findIndex((t) => t.courseId === form.value.courseId)
   if (index !== -1) {
-    courseStore.updateCourse(form.value)
-    ElMessage.success('保存成功')
-    editDialogVisible.value = false
+    try {
+      await courseStore.updateCourse(form.value)
+      ElMessage.success('保存成功')
+      editDialogVisible.value = false
+    } catch {
+      ElMessage.error('保存失败')
+    }
   } else {
     ElMessage.error('保存失败')
   }
 }
 
-// 删除确认
+// 删除课程确认
 const confirmDelete = (courseId: number) => {
   ElMessageBox.confirm('确认删除此课程吗？', '删除课程', {
     confirmButtonText: '确定',
@@ -262,22 +266,57 @@ const deleteCourse = async (courseId: number) => {
   }
 }
 
-// 打开新增课程弹窗
+// 删除专业确认
+const confirmDeleteMajor = (majorId: number) => {
+  ElMessageBox.confirm('确认删除此专业及其所有课程吗？', '删除专业', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
+    .then(async () => {
+      await deleteMajor(majorId)
+    })
+    .catch(() => {
+      ElMessage.info('删除已取消')
+    })
+}
+
+// 删除专业
+const deleteMajor = async (majorId: number) => {
+  try {
+    await majorStore.deleteMajor(majorId)
+    ElMessage.success('删除专业成功')
+    // 刷新专业列表
+    const collegeInfo = collegeStore.collegeInfo!
+    await majorStore.fetchMajorsByCollege(collegeInfo.collegeId)
+    // 同时可以重置展开状态
+    collapseAll()
+  } catch {
+    ElMessage.error('删除专业失败')
+  }
+}
+
+// 打开新增专业弹窗
 const openAddDialog = () => {
-  addForm.value = { majorName: '', collegeId: collegeStore.collegeInfo?.collegeId, majorDescription: '' }
+  addForm.value = {
+    collegeId: collegeStore.collegeInfo?.collegeId,
+    majorName: '',
+    majorDescription: '',
+  }
   addDialogVisible.value = true
 }
 
-// 新增课程保存按钮
+// 新增专业保存按钮
 const saveNewMajor = async () => {
   try {
-    console.log(addForm.value)
     await majorStore.addMajor(addForm.value)
-    ElMessage.success('新增课程成功')
+    ElMessage.success('新增专业成功')
     addDialogVisible.value = false
-    majorStore.fetchMajors() // 更新课程列表
+    const collegeInfo = collegeStore.collegeInfo!
+    await majorStore.fetchMajorsByCollege(collegeInfo.collegeId)
+    expandAll()
   } catch (err) {
-    ElMessage.error('新增课程失败')
+    ElMessage.error('新增专业失败')
   }
 }
 </script>
@@ -318,15 +357,28 @@ const saveNewMajor = async () => {
   text-align: center;
 }
 
-p {
+.no-courses-text {
   color: #999;
   text-align: center;
   margin-top: 10px;
 }
 
+/* 将按钮容器放到右侧排列 */
 .button-container {
   display: flex;
   justify-content: flex-end;
+  gap: 10px; /* 按钮间距 */
   margin-top: 10px;
+}
+
+/* 分割线改为深色 */
+.custom-collapse ::v-deep .el-collapse-item__header {
+  border-bottom: 1px solid #999;
+}
+
+/* 表格边框改为深色 */
+.custom-table ::v-deep .el-table__header,
+.custom-table ::v-deep .el-table__body {
+  border-color: #999;
 }
 </style>

@@ -1,4 +1,4 @@
-// src/store/collegeAdmin.ts
+// src/store/modules/collegeAdmin.ts
 import { defineStore } from 'pinia'
 import { get, post, put, del, patch } from '@/utils/request'
 import { ElMessage } from 'element-plus'

@@ -25,7 +25,7 @@
             <div v-if="row.textbooks?.length">
               <!-- 列出所有教材，每个都可关闭解绑 -->
               <el-tag v-for="tb in row.textbooks" :key="tb.textbookId" closable @close="unbindTextbook(row, tb)" style="margin: 4px">
-                {{ tb.name }}（{{ tb.code }}）
+                {{ tb.name }}({{ tb.code }})
               </el-tag>
             </div>
             <div v-else>无教材</div>

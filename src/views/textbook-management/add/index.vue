@@ -22,6 +22,10 @@
           <el-input v-model="form.author" placeholder="请输入作者姓名" />
         </el-form-item>
 
+        <el-form-item label="库存数量" prop="stockQuantity">
+          <el-input v-model="form.stockQuantity" placeholder="请输入库存数量" />
+        </el-form-item>
+
         <el-form-item label="价格" prop="price">
           <el-input v-model.number="form.price" type="number" placeholder="请输入教材价格" />
         </el-form-item>
@@ -54,8 +58,10 @@ const form = ref({
   code: '',
   publisher: '',
   author: '',
+  stockQuantity: 0,
   price: 0,
   status: '',
+  textbookId: 0,
 })
 
 const formRef = ref()
@@ -86,8 +92,10 @@ const resetForm = () => {
     code: '',
     publisher: '',
     author: '',
+    stockQuantity: 0,
     price: 0,
     status: '',
+    textbookId: 0,
   }
   formRef.value.resetFields()
 }

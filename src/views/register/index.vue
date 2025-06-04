@@ -1,11 +1,12 @@
 <template>
   <div class="register_container">
-    <el-form class="register_form" @submit.prevent="register" :model="registerForm" :rules="rules" ref="registerForms">
+    <el-form class="register_form" ref="registerFormRef" :model="registerForm" :rules="rules" @submit.prevent="onRegister">
       <h1 class="logo-container">
         <img :src="logoImg" class="logo" />
         欢迎注册
       </h1>
 
+      <!-- 用户名 -->
       <el-form-item prop="username">
         <el-input v-model="registerForm.username" placeholder="用户名">
           <template #prefix>
@@ -16,6 +17,7 @@
         </el-input>
       </el-form-item>
 
+      <!-- 密码 -->
       <el-form-item prop="password">
         <el-input type="password" v-model="registerForm.password" placeholder="密码" show-password>
           <template #prefix>
@@ -26,12 +28,9 @@
         </el-input>
       </el-form-item>
 
-      <el-form-item prop="avatar">
-        <el-input v-model="registerForm.avatar" placeholder="头像链接 (可选)" />
-      </el-form-item>
-
+      <!-- 注册按钮 -->
       <el-form-item>
-        <el-button class="register_btn" type="primary" size="large" @click="register">注册</el-button>
+        <el-button class="register_btn" type="primary" size="large" :loading="loading" @click="onRegister">注册</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -41,43 +40,59 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
-import axios from 'axios'
 import { User, Lock } from '@element-plus/icons-vue'
 import logoImg from '@/assets/images/logo.png'
+import type { FormInstance } from 'element-plus'
 
-// 注册表单数据
+import { useStudentStore } from '@/store/modules/student'
+
+// 注册表单数据（只保留用户名和密码）
 const registerForm = reactive({
   username: '',
   password: '',
-  avatar: '',
 })
 
 // 表单引用
-const registerForms = ref()
+const registerFormRef = ref<FormInstance>()
 
 // 路由实例
 const router = useRouter()
 
-// 注册逻辑
-const register = async () => {
-  await registerForms.value.validate()
+// Pinia 实例
+const studentStore = useStudentStore()
+
+// 注册按钮 loading 状态
+const loading = ref(false)
+
+/**
+ * 注册函数：利用 Pinia 中的 register 方法
+ */
+const onRegister = async () => {
+  if (loading.value) return
+
+  // 先校验表单字段
   try {
-    await axios.post('http://localhost:8080/student/register', null, {
-      params: {
-        username: registerForm.username,
-        password: registerForm.password,
-      },
-    })
+    await registerFormRef.value?.validate()
+  } catch {
+    return
+  }
+
+  loading.value = true
+  try {
+    // 调用 studentStore.register，将参数传给后端
+    await studentStore.register(registerForm.username.trim(), registerForm.password.trim())
 
     ElNotification({
       title: '注册成功',
-      message: '请前往登录',
+      message: '请前往登录页面',
       type: 'success',
     })
 
-    router.push('/login')
-  } catch (error: any) {
-    const msg = error?.response?.data?.message || '注册失败，请稍后重试'
+    setTimeout(() => {
+      router.push('/login')
+    }, 800)
+  } catch (err: any) {
+    const msg = err?.message || '注册失败，请稍后再试'
     if (msg.includes('已存在')) {
       ElNotification({
         title: '注册失败',
@@ -91,18 +106,40 @@ const register = async () => {
         type: 'error',
       })
     }
+  } finally {
+    loading.value = false
   }
 }
 
-// 表单校验规则
+// 表单校验规则，与后端保持一致：用户名/密码 5~16 个非空白字符
 const rules = {
   username: [
     { required: true, message: '用户名不能为空', trigger: 'blur' },
-    { min: 5, max: 16, message: '用户名长度应为 5~16 位', trigger: 'change' },
+    {
+      min: 5,
+      max: 16,
+      message: '用户名长度应为 5~16 个字符（不能含空格）',
+      trigger: ['blur', 'change'],
+    },
+    {
+      pattern: /^\S{5,16}$/,
+      message: '用户名只能是 5~16 个非空白字符',
+      trigger: ['blur', 'change'],
+    },
   ],
   password: [
     { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 5, max: 1000, message: '密码至少为 5 位', trigger: 'change' },
+    {
+      min: 5,
+      max: 16,
+      message: '密码长度应为 5~16 个字符（不能含空格）',
+      trigger: ['blur', 'change'],
+    },
+    {
+      pattern: /^\S{5,16}$/,
+      message: '密码只能是 5~16 个非空白字符',
+      trigger: ['blur', 'change'],
+    },
   ],
 }
 </script>

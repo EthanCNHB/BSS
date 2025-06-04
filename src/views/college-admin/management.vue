@@ -12,7 +12,7 @@
       </div>
 
       <!-- 管理员表格 -->
-      <el-table :data="adminStore.adminList" border style="width: 100%; margin-top: 20px">
+      <el-table :data="adminStore.collegeAdminList" border style="width: 100%; margin-top: 20px">
         <el-table-column label="管理员ID" prop="userId" width="100" />
         <el-table-column label="用户名" prop="username" width="180" />
         <el-table-column label="所属学院" width="200">

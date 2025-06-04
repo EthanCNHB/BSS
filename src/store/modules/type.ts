@@ -70,17 +70,17 @@ export interface Admin {
   username: string
 }
 
-/** 教材预订记录 */
 export interface TextbookReservation {
   reservationId: number
   textbookId: number
   userId: number
-  collegeId: number
-  majorId: number
   reservationQuantity: number
-  orderDate: string
-  textbookName?: string
-  textbookPrice?: number
+  orderDate: string // 或者 Date
+  textbookName: string // 新增：教材名称
+  textbookPrice: number // 新增：教材单价
+  studentName: string // 新增：学生姓名（仅管理员视角）
+  collegeName: string // 新增：学院名称
+  majorName: string // 新增：专业名称
 }
 
 /** 专业（Major）类型 */

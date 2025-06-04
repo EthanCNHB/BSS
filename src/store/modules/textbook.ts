@@ -129,7 +129,7 @@ export const useTextbookStore = defineStore('textbook', {
      */
     async unassignTextbookFromCourse(textbookId: number, courseId: number): Promise<void> {
       try {
-        await del<void>(`/textbook/${textbookId}/courses/${courseId}`)
+        await del<void>(`/teacher/${textbookId}/courses/${courseId}`)
         ElMessage.success('教材解绑成功')
         // 操作完成后刷新列表展示最新状态
         await this.fetchTextbooks()

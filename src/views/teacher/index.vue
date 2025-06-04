@@ -13,10 +13,19 @@
       </template>
 
       <el-descriptions class="mt-4" :column="2" border>
-        <el-descriptions-item label="用户名">{{ teacherInfo?.username }}</el-descriptions-item>
-        <el-descriptions-item label="姓名">{{ teacherInfo?.teacherName }}</el-descriptions-item>
-        <el-descriptions-item label="学院ID">{{ teacherInfo?.collegeId }}</el-descriptions-item>
-        <el-descriptions-item label="专业ID">{{ teacherInfo?.majorId }}</el-descriptions-item>
+        <el-descriptions-item label="用户名">
+          {{ teacherInfo?.username }}
+        </el-descriptions-item>
+        <el-descriptions-item label="姓名">
+          {{ teacherInfo?.teacherName }}
+        </el-descriptions-item>
+        <!-- 依然显示文本名称，而不是 ID -->
+        <el-descriptions-item label="学院">
+          {{ collegeStore.nameById(teacherInfo?.collegeId ?? -1) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="专业">
+          {{ majorStore.nameById(teacherInfo?.majorId ?? -1) }}
+        </el-descriptions-item>
       </el-descriptions>
     </el-card>
 
@@ -39,21 +48,31 @@
     </el-card>
 
     <!-- 编辑资料弹窗 -->
-    <el-dialog title="编辑个人资料" v-model:visible="showEditDialog" width="500px" :destroy-on-close="true" style="z-index: 9999">
+    <el-dialog title="编辑个人资料" v-model="showEditDialog" width="500px" :destroy-on-close="true" style="z-index: 9999">
       <el-form :model="editForm" ref="editFormRef" label-width="100px">
         <el-form-item label="用户名">
           <el-input v-model="editForm.username" disabled />
         </el-form-item>
+
         <el-form-item label="姓名" prop="teacherName" :rules="[{ required: true, message: '请输入姓名', trigger: 'blur' }]">
           <el-input v-model="editForm.teacherName" />
         </el-form-item>
-        <el-form-item label="学院ID" prop="collegeId">
-          <el-input-number v-model="editForm.collegeId" :min="1" />
+
+        <!-- 把学院输入框改为下拉列表 -->
+        <el-form-item label="学院" prop="collegeId" :rules="[{ required: true, message: '请选择学院', trigger: 'change' }]">
+          <el-select v-model="editForm.collegeId" placeholder="请选择学院" filterable :loading="collegesLoading">
+            <el-option v-for="col in collegeStore.colleges" :key="col.collegeId" :label="col.collegeName" :value="col.collegeId" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="专业ID" prop="majorId">
-          <el-input-number v-model="editForm.majorId" :min="1" />
+
+        <!-- 把专业输入框改为下拉列表 -->
+        <el-form-item label="专业" prop="majorId" :rules="[{ required: true, message: '请选择专业', trigger: 'change' }]">
+          <el-select v-model="editForm.majorId" placeholder="请选择专业" filterable :loading="majorsLoading">
+            <el-option v-for="maj in majorStore.majors" :key="maj.majorId" :label="maj.majorName" :value="maj.majorId" />
+          </el-select>
         </el-form-item>
       </el-form>
+
       <template #footer>
         <el-button @click="showEditDialog = false">取消</el-button>
         <el-button type="primary" @click="submitEdit">保存</el-button>
@@ -61,18 +80,21 @@
     </el-dialog>
 
     <!-- 修改密码弹窗 -->
-    <el-dialog title="修改密码" v-model:visible="showPwdDialog" width="400px" :destroy-on-close="true">
+    <el-dialog title="修改密码" v-model="showPwdDialog" width="400px" :destroy-on-close="true">
       <el-form :model="pwdForm" ref="pwdFormRef" label-width="100px">
         <el-form-item label="旧密码" prop="oldPwd" :rules="[{ required: true, message: '请输入旧密码', trigger: 'blur' }]">
           <el-input v-model="pwdForm.oldPwd" type="password" />
         </el-form-item>
+
         <el-form-item label="新密码" prop="newPwd" :rules="[{ required: true, message: '请输入新密码', trigger: 'blur' }]">
           <el-input v-model="pwdForm.newPwd" type="password" />
         </el-form-item>
+
         <el-form-item label="确认密码" prop="rePwd" :rules="[{ required: true, message: '请确认新密码', trigger: 'blur' }]">
           <el-input v-model="pwdForm.rePwd" type="password" />
         </el-form-item>
       </el-form>
+
       <template #footer>
         <el-button @click="showPwdDialog = false">取消</el-button>
         <el-button type="primary" @click="submitPassword">确认</el-button>
@@ -84,10 +106,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useTeacherStore } from '@/store/modules/teacher'
+import { useCollegeStore } from '@/store/modules/college'
+import { useMajorStore } from '@/store/modules/major'
 import { useRouter } from 'vue-router'
 import type { TeacherInfo, Course } from '@/store/modules/type'
 
 const teacherStore = useTeacherStore()
+const collegeStore = useCollegeStore()
+const majorStore = useMajorStore()
 const router = useRouter()
 
 // 本地状态
@@ -104,8 +130,9 @@ const showPwdDialog = ref(false)
 const pwdForm = ref({ oldPwd: '', newPwd: '', rePwd: '' })
 const pwdFormRef = ref()
 
-// 批量分配
-const allCourses = ref<Course[]>([])
+// 下拉列表的加载状态指示（可选）
+const collegesLoading = ref(false)
+const majorsLoading = ref(false)
 
 // 撤销课程
 async function unassign(courseId: number) {
@@ -121,7 +148,7 @@ async function submitEdit() {
     showEditDialog.value = false
     await fetchInfo()
   } catch {
-    // store 会提示
+    // store 会提示错误信息
   }
 }
 
@@ -131,8 +158,12 @@ async function submitPassword() {
     await pwdFormRef.value.validate()
     await teacherStore.updatePassword(pwdForm.value.oldPwd, pwdForm.value.newPwd, pwdForm.value.rePwd)
     showPwdDialog.value = false
+    // 密码修改成功后可重置表单
+    pwdForm.value.oldPwd = ''
+    pwdForm.value.newPwd = ''
+    pwdForm.value.rePwd = ''
   } catch {
-    // store 会提示
+    // store 会提示错误信息
   }
 }
 
@@ -140,23 +171,14 @@ async function submitPassword() {
 async function fetchInfo() {
   await teacherStore.fetchTeacherInfo()
   teacherInfo.value = teacherStore.teacherInfo
+  // 把后端返回的字段赋到 editForm，用于弹窗编辑时的初始值
   editForm.value = { ...teacherStore.teacherInfo }
 }
 
 // 拉取我的课程
 async function fetchCourses() {
-  await teacherStore.fetchCourses()
+  await teacherStore.fetchBasicCourses()
   courses.value = teacherStore.teacherInfo?.courses || []
-}
-
-async function fetchAllCourses() {
-  try {
-    const list = await teacherStore.getAllCourses()
-    allCourses.value = list
-  } catch (err) {
-    // 错误处理
-    console.error('获取所有可选课程失败', err)
-  }
 }
 
 onMounted(async () => {
@@ -164,9 +186,19 @@ onMounted(async () => {
     router.push({ name: 'login' })
     return
   }
+
+  // 先拉取所有学院列表和专业列表
+  collegesLoading.value = true
+  await collegeStore.fetchColleges()
+  collegesLoading.value = false
+
+  majorsLoading.value = true
+  await majorStore.fetchMajors()
+  majorsLoading.value = false
+
+  // 再拉取教师信息和课程
   await fetchInfo()
   await fetchCourses()
-  await fetchAllCourses()
 })
 </script>
 

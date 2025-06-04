@@ -15,12 +15,24 @@ export const useMajorStore = defineStore('major', {
   getters: {
     /** 专业总数 */
     count: (state) => state.majors.length,
+
     /** 按 majorId 索引的映射 */
     byId: (state) =>
       state.majors.reduce<Record<number, Major>>((map, m) => {
         map[m.majorId] = m
         return map
       }, {}),
+
+    /**
+     * 直接根据 majorId 拿到专业名称
+     * 如果不存在则返回 `未知专业`
+     */
+    nameById: (state) => {
+      return (id: number) => {
+        const m = state.majors.find((x) => x.majorId === id)
+        return m ? m.majorName : '未知专业'
+      }
+    },
   },
 
   actions: {
@@ -30,11 +42,9 @@ export const useMajorStore = defineStore('major', {
      */
     async fetchMajors(): Promise<void> {
       try {
-        // 请求后端获取所有专业数据
         const list = await get<Major[]>('/major/list')
         this.majors = list
       } catch (err: any) {
-        // 错误处理
         const errorMessage = err?.response?.data?.message || err?.message || '未知错误'
         ElMessage.error(`获取专业列表失败：${errorMessage}`)
       }
@@ -46,7 +56,6 @@ export const useMajorStore = defineStore('major', {
      */
     async fetchMajorsByCollege(collegeId: number): Promise<void> {
       try {
-        console.log(collegeId)
         const list = await get<Major[]>(`/major/listByCollege/${collegeId}`)
         this.majors = list
       } catch (err: any) {
@@ -61,9 +70,9 @@ export const useMajorStore = defineStore('major', {
      */
     async addMajor(major: Major): Promise<void> {
       try {
-        await post<void>('/major/add', major) // 使用 POST 请求传递 body 数据
+        await post<void>('/major/add', major)
         ElMessage.success('新增专业成功')
-        await this.fetchMajors() // 刷新列表
+        await this.fetchMajors()
       } catch (err: any) {
         const errorMessage = err?.response?.data?.message || err?.message || '新增失败'
         ElMessage.error(`新增专业失败：${errorMessage}`)
@@ -76,9 +85,9 @@ export const useMajorStore = defineStore('major', {
      */
     async updateMajor(major: Major): Promise<void> {
       try {
-        await put<void>('/major/update', major) // 直接传递 major 对象
+        await put<void>('/major/update', major)
         ElMessage.success('更新专业成功')
-        await this.fetchMajors() // 刷新列表
+        await this.fetchMajors()
       } catch (err: any) {
         const errorMessage = err?.response?.data?.message || err?.message || '更新失败'
         ElMessage.error(`更新专业失败：${errorMessage}`)
@@ -93,7 +102,7 @@ export const useMajorStore = defineStore('major', {
       try {
         await del<void>(`/major/delete/${majorId}`)
         ElMessage.success('删除专业成功')
-        await this.fetchMajors() // 刷新列表
+        await this.fetchMajors()
       } catch (err: any) {
         const errorMessage = err?.response?.data?.message || err?.message || '删除失败'
         ElMessage.error(`删除专业失败：${errorMessage}`)

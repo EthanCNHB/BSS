@@ -8,7 +8,7 @@
 import type { TeacherInfo, Course } from '@/store/modules/type'
 import { defineStore } from 'pinia'
 import { ElMessage } from 'element-plus'
-import { get, post, del } from '@/utils/request'
+import { get, post, del, put, patch } from '@/utils/request'
 import { GET_TOKEN, SET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 
 export const useTeacherStore = defineStore('teacher', {
@@ -146,7 +146,7 @@ export const useTeacherStore = defineStore('teacher', {
         return
       }
       try {
-        await del<void>(`/teacher/${this.teacherInfo.userId}/courses/${courseId}`)
+        await del<void>(`/textbook/${this.teacherInfo.userId}/courses/${courseId}`)
         ElMessage.success('撤销成功')
         // 撤销后刷新带教材信息的列表
         await this.fetchCoursesWithTextbooks()
@@ -164,6 +164,49 @@ export const useTeacherStore = defineStore('teacher', {
         return await get<Course[]>('/courses/list')
       } catch (err: any) {
         ElMessage.error('获取可选课程列表失败：' + err.message)
+        throw err
+      }
+    },
+
+    /**
+     * 更新教师基本信息（teacherName、collegeId、majorId 等字段）
+     * @param updatedInfo 待更新的 TeacherInfo 对象，必须包含 userId
+     */
+    async updateTeacherInfo(updatedInfo: TeacherInfo): Promise<void> {
+      if (!this.teacherInfo) {
+        ElMessage.error('教师信息加载失败')
+        return
+      }
+      try {
+        // PUT /teacher/update
+        await put<void>('/teacher/update', updatedInfo)
+        ElMessage.success('更新教师资料成功')
+        // 更新本地缓存的 teacherInfo
+        // 注意：如果后端返回的是更新后的完整对象，也可改为 this.teacherInfo = res
+        this.teacherInfo = { ...this.teacherInfo, ...updatedInfo }
+      } catch (err: any) {
+        ElMessage.error('更新教师资料失败：' + (err.message || '未知错误'))
+        throw err
+      }
+    },
+
+    /**
+     * 修改教师密码
+     * @param oldPwd 原密码
+     * @param newPwd 新密码
+     * @param rePwd  重复新密码
+     */
+    async updatePassword(oldPwd: string, newPwd: string, rePwd: string): Promise<void> {
+      if (!this.teacherInfo) {
+        ElMessage.error('教师信息加载失败')
+        return
+      }
+      try {
+        // PATCH /teacher/password
+        await patch<void>('/teacher/password', { oldPwd, newPwd, rePwd })
+        ElMessage.success('修改密码成功')
+      } catch (err: any) {
+        ElMessage.error('修改密码失败：' + (err.message || '未知错误'))
         throw err
       }
     },

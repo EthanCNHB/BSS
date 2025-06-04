@@ -1,7 +1,7 @@
 <template>
   <el-button type="primary" size="small" icon="Refresh" @click="updateRefsh" />
   <el-button type="primary" size="small" icon="Setting" />
-  <img :src="userStore.avatar" alt="avatar" class="user-avatar" />
+  <img src="@/assets/images/avatar.png" alt="avatar" class="user-avatar" />
   <!-- 下拉菜单 -->
   <el-dropdown>
     <span class="el-dropdown-link">

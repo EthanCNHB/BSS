@@ -128,13 +128,13 @@ export const constantRoute = [
     children: [
       {
         path: 'list',
-        component: () => import('@/views/subscription-management/list.vue'),
+        component: () => import('@/views/subscription-student/list.vue'),
         name: 'subscriptionList',
-        meta: { title: '征订列表', icon: 'DocumentList' },
+        meta: { title: '征订列表', icon: 'ZoomIn' },
       },
       {
         path: 'order',
-        component: () => import('@/views/subscription-management/order.vue'),
+        component: () => import('@/views/subscription-student/order.vue'),
         name: 'orderManagement',
         meta: { title: '订单管理', icon: 'Ticket' },
       },
@@ -260,21 +260,21 @@ export const constantRoute = [
       },
     ],
   },
-  // —— 统计分析（管理员、教师） —— //
-  {
-    path: '/statistics',
-    component: () => import('@/layout/index.vue'),
-    name: 'statistics',
-    meta: { title: '统计分析', icon: 'Histogram', roles: ['admin', 'teacher'] },
-    children: [
-      {
-        path: '',
-        component: () => import('@/views/statistics/index.vue'),
-        name: 'statisticsPage',
-        meta: { title: '统计分析', icon: 'Histogram' },
-      },
-    ],
-  },
+  // // —— 统计分析（管理员、教师） —— //
+  // {
+  //   path: '/statistics',
+  //   component: () => import('@/layout/index.vue'),
+  //   name: 'statistics',
+  //   meta: { title: '统计分析', icon: 'Histogram', roles: ['admin', 'teacher'] },
+  //   children: [
+  //     {
+  //       path: '',
+  //       component: () => import('@/views/statistics/index.vue'),
+  //       name: 'statisticsPage',
+  //       meta: { title: '统计分析', icon: 'Histogram' },
+  //     },
+  //   ],
+  // },
 
   // —— 错误页面 —— //
   { path: '/403', component: () => import('@/views/403/index.vue'), name: '403', meta: { hidden: true } },

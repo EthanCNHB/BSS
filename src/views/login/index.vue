@@ -1,6 +1,6 @@
 <template>
   <div class="login_container">
-    <el-form class="login_form" @submit.prevent="login" :model="loginForm" :rules="rules" ref="loginForms">
+    <el-form class="login_form" ref="loginForms" :model="loginForm" :rules="rules" @submit.prevent="login">
       <h1 class="logo-container">
         <img :src="logoImg" class="logo" />
         欢迎
@@ -23,7 +23,8 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button class="login_btn" type="primary" size="large" @click="login">
+        <!-- 正确用法：type 用作样式，native-type 用作原生提交 -->
+        <el-button class="login_btn" type="primary" :loading="loading" native-type="submit">
           <el-icon><Unlock /></el-icon>
           &nbsp; 登录
         </el-button>
@@ -44,6 +45,7 @@ import { User, Lock, Unlock } from '@element-plus/icons-vue'
 import logoImg from '@/assets/images/logo.png'
 import { useUserStore } from '@/store/modules/user'
 import { jumpByRole } from '@/utils/jump'
+import type { FormInstance } from 'element-plus'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -53,13 +55,18 @@ const loginForm = reactive({
   password: '',
 })
 
-const loginForms = ref()
+const loginForms = ref<FormInstance>()
 const loading = ref(false)
 
 const login = async () => {
-  await loginForms.value.validate()
-  loading.value = true
+  // 先做表单校验
+  try {
+    await loginForms.value?.validate()
+  } catch {
+    return
+  }
 
+  loading.value = true
   try {
     const success = await userStore.doLogin(loginForm.username, loginForm.password)
     if (success) {
@@ -104,6 +111,7 @@ const goToRegister = () => {
 </script>
 
 <style scoped lang="scss">
+/* （样式保持不变） */
 .login_container {
   display: flex;
   justify-content: center;

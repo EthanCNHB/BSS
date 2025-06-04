@@ -1,4 +1,4 @@
-// src/store/admin.ts
+// src/store/modules/admin.ts
 import { defineStore } from 'pinia'
 import { get } from '@/utils/request'
 import { ElMessage } from 'element-plus'

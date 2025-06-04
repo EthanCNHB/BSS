@@ -21,6 +21,18 @@ export const useCollegeStore = defineStore('college', {
         map[c.collegeId] = c
         return map
       }, {}),
+
+    /**
+     * 直接根据 collegeId 拿到名称
+     * 如果不存在则返回 `未知学院`
+     */
+    nameById: (state) => {
+      // 注意这里用箭头函数，再在组件里调用时： collegeStore.nameById(collegeId)
+      return (id: number) => {
+        const c = state.colleges.find((x) => x.collegeId === id)
+        return c ? c.collegeName : '未知学院'
+      }
+    },
   },
 
   actions: {
@@ -38,7 +50,6 @@ export const useCollegeStore = defineStore('college', {
     async fetchColleges(): Promise<void> {
       try {
         const list = await get<College[]>('/college/list')
-        console.log(list)
         this.colleges = list
       } catch (err: any) {
         const msg = err?.response?.data?.message || err.message || '未知错误'
