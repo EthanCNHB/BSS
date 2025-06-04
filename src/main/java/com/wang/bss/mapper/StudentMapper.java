@@ -1,6 +1,7 @@
 package com.wang.bss.mapper;
 
 import com.wang.bss.pojo.Student;
+import com.wang.bss.pojo.Course;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -42,4 +43,21 @@ public interface StudentMapper {
      */
     @Select("SELECT user_id AS userId, username, student_name AS studentName, college_id AS collegeId, major_id AS majorId, email, phone " +
             "FROM student")
-    List<Student> selectAll();}
+    List<Student> selectAll();
+
+    // —— 多对多关联操作 —— //
+
+    /** 查询某位学生的所有课程 */
+    @Select("SELECT c.* FROM course c " +
+            "JOIN student_course sc ON c.course_id = sc.course_id " +
+            "WHERE sc.student_id = #{studentId}")
+    List<Course> findCoursesByStudentId(@Param("studentId") Integer studentId);
+
+    /** 插入学生-课程关联 */
+    @Insert("INSERT INTO student_course (student_id, course_id) VALUES (#{studentId}, #{courseId})")
+    void insertStudentCourse(@Param("studentId") Integer studentId, @Param("courseId") Integer courseId);
+
+    /** 删除学生单条课程关联 */
+    @Delete("DELETE FROM student_course WHERE student_id = #{studentId} AND course_id = #{courseId}")
+    void deleteCourseAssignment(@Param("studentId") Integer studentId, @Param("courseId") Integer courseId);
+}

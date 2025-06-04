@@ -2,6 +2,7 @@ package com.wang.bss.service.Impl;
 
 import com.wang.bss.mapper.StudentMapper;
 import com.wang.bss.pojo.Student;
+import com.wang.bss.pojo.Course;
 import com.wang.bss.service.StudentService;
 import com.wang.bss.utils.Md5Util;
 import com.wang.bss.utils.ThreadLocalUtil;
@@ -58,5 +59,22 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<Student> findAll() {
         return studentMapper.selectAll();
+    }
+
+    // —— 多对多课程关联 —— //
+
+    @Override
+    public List<Course> findCoursesByStudentId(Integer studentId) {
+        return studentMapper.findCoursesByStudentId(studentId);
+    }
+
+    @Override
+    public void assignCourse(Integer studentId, Integer courseId) {
+        studentMapper.insertStudentCourse(studentId, courseId);
+    }
+
+    @Override
+    public void unassignCourse(Integer studentId, Integer courseId) {
+        studentMapper.deleteCourseAssignment(studentId, courseId);
     }
 }

@@ -2,6 +2,7 @@ package com.wang.bss.controller;
 
 import com.wang.bss.pojo.Result;
 import com.wang.bss.pojo.Student;
+import com.wang.bss.pojo.Course;
 import com.wang.bss.service.StudentService;
 import com.wang.bss.utils.Md5Util;
 import com.wang.bss.utils.ThreadLocalUtil;
@@ -117,5 +118,36 @@ public class StudentController {
     public Result<List<Student>> listAllStudents() {
         List<Student> list = studentService.findAll();
         return Result.success(list);
+    }
+
+    /** 查询学生的所有课程 */
+    @GetMapping("/{studentId}/courses")
+    public Result<List<Course>> getCourses(@PathVariable Integer studentId) {
+        ensureAuthenticated();
+        List<Course> list = studentService.findCoursesByStudentId(studentId);
+        return Result.success(list);
+    }
+
+    /** 给学生分配课程 */
+    @PostMapping("/{studentId}/courses")
+    public Result<Void> assignCourses(@PathVariable Integer studentId,
+                                     @RequestBody List<Integer> courseIds) {
+        ensureAuthenticated();
+        if (courseIds == null || courseIds.isEmpty()) {
+            return Result.error("请选择要分配的课程");
+        }
+        for (Integer courseId : courseIds) {
+            studentService.assignCourse(studentId, courseId);
+        }
+        return Result.success();
+    }
+
+    /** 撤销学生的一门课程 */
+    @DeleteMapping("/{studentId}/courses/{courseId}")
+    public Result<Void> unassignCourse(@PathVariable Integer studentId,
+                                       @PathVariable Integer courseId) {
+        ensureAuthenticated();
+        studentService.unassignCourse(studentId, courseId);
+        return Result.success();
     }
 }
