@@ -1,38 +1,54 @@
 package com.wang.bss.pojo;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data; // 导入Lombok的@Data注解，用于自动生成getter、setter等方法
+import lombok.Data;
 
-@Data // 使用Lombok来自动生成各种方法
-@Entity // 标识该类为一个实体类
-@Table(name = "textbook", schema = "book_reservation_system") // 指定表名和架构
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
+
+@Data
+@Entity
+@Table(name = "textbook", schema = "book_reservation_system")
 public class Textbook {
-    @Id // 标识该字段为主键
-    @NotNull // 该字段不能为空
-    @Column(name = "textbook_id") // 映射数据库字段
-    private Integer textbookId; // 教材ID
 
-    @NotEmpty // 该字段不能为空
-    @Column(name = "name") // 映射数据库字段
-    private String name; // 教材名称
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "textbook_id")
+    private Integer textbookId;  // 教材ID
 
-    @Column(name = "code") // 映射数据库字段
-    private String code; // 教材编号
+    @NotEmpty(message = "教材名称不能为空")
+    @Column(name = "name", nullable = false)
+    private String name;         // 教材名称
 
-    @Column(name = "publisher") // 映射数据库字段
-    private String publisher; // 出版社
+    @NotEmpty(message = "教材编号不能为空")
+    @Column(name = "code", nullable = false, unique = true)
+    private String code;         // 教材编号
 
-    @Column(name = "author") // 映射数据库字段
-    private String author; // 作者
+    @Column(name = "publisher")
+    private String publisher;    // 出版社
 
-    @Column(name = "price") // 映射数据库字段
-    private Double price; // 价格
+    @Column(name = "author")
+    private String author;       // 作者
 
-    @Column(name = "status") // 映射数据库字段
-    private String status; // 教材状态
+    @Column(name = "price")
+    private Double price;
+
+
+    @Column(name = "status")
+    private String status;       // 教材状态
+
+    @Column(name = "stock_quantity")
+    private Integer stockQuantity; // 库存数量
+
+    /** 与 Course 的多对多 */
+    @ManyToMany
+    @JoinTable(
+            name = "course_textbook",
+            joinColumns = @JoinColumn(name = "textbook_id"),
+            inverseJoinColumns = @JoinColumn(name = "course_id")
+    )
+    private Set<Course> courses = new HashSet<>();
 }

@@ -2,37 +2,39 @@ package com.wang.bss.controller;
 
 import com.wang.bss.pojo.Admin;
 import com.wang.bss.pojo.Result;
+import com.wang.bss.pojo.TextbookReservation;
 import com.wang.bss.service.AdministratorService;
-import com.wang.bss.utils.JwtUtil;
-import jakarta.validation.constraints.Pattern;
+import com.wang.bss.service.TextbookReservationService;
+import com.wang.bss.utils.ThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/admin")
 public class AdministratorController {
+
     @Autowired
     private AdministratorService administratorService;
-
-    @PostMapping("/login")
-    public Result<String> login(@Pattern(regexp = "^\\S{5,16}$") String username, @Pattern(regexp = "^\\S{5,1000}$") String password) {
-        Admin loginAdmin = administratorService.findByUserName(username);
-        if (loginAdmin == null) {
-            return Result.error("用户名错误！");
-        }
-
-        if (password.equals(loginAdmin.getPassword())) {
-            Map<String, Object> claims = new HashMap<>();
-            claims.put("userId", loginAdmin.getUserId());
-            claims.put("username", loginAdmin.getUsername());
-            String token = JwtUtil.genToken(claims);
-            return Result.success(token);
-        }
-        return Result.error("密码错误！");
+    @Autowired
+    private TextbookReservationService textbookReservationService;
+    // 获取管理员资料
+    @GetMapping("/info")
+    public Result<Admin> adminInfo() {
+        Map<String, Object> map = ThreadLocalUtil.get();
+        String username = (String) map.get("username");
+        Admin admin = administratorService.findByUserName(username);
+        return Result.success(admin);
     }
+
+    /**
+     * 获取所有教材订单
+     */
+    @GetMapping("/trInfo")
+    public Result<List<TextbookReservation>> findAll(){
+        return Result.success(textbookReservationService.findAll());
+    }
+
 }

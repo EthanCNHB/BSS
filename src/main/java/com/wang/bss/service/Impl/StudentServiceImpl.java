@@ -8,7 +8,7 @@ import com.wang.bss.utils.ThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -25,11 +25,17 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public void register(String username, String password) {
-
         String md5String = Md5Util.getMD5String(password);
 
-        studentMapper.add(username, md5String);
+        // 提供默认值
+        String defaultName = "新注册学生";
+        int defaultCollegeId = 1;
+        int defaultMajorId = 1;
+        String defaultAvatar = "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif";
+
+        studentMapper.add(username, md5String, defaultName, defaultCollegeId, defaultMajorId, defaultAvatar);
     }
+
 
     @Override
     public void update(Student student) {
@@ -42,5 +48,15 @@ public class StudentServiceImpl implements StudentService {
         Map<String,Object> map = ThreadLocalUtil.get();
         Integer userId = (Integer) map.get("userId");
         studentMapper.updatePwd(Md5Util.getMD5String(newPwd), userId);
+    }
+
+    @Override
+    public Student findById(Integer userId) {
+        return studentMapper.selectById(userId);
+    }
+
+    @Override
+    public List<Student> findAll() {
+        return studentMapper.selectAll();
     }
 }

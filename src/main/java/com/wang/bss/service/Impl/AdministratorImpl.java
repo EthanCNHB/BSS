@@ -25,21 +25,4 @@ public class AdministratorImpl implements AdministratorService {
         Admin admin = administratorMapper.findByUserName(username);
         return admin;
     }
-
-    @PostMapping("/login")
-    public Result<String> login(@Pattern(regexp = "^\\S{5,16}$") String username, @Pattern(regexp = "^\\S{5,16}$") String password) {
-        Admin loginAdmin = administratorMapper.findByUserName(username);
-        if (loginAdmin == null) {
-            return Result.error("管理员用户名错误！");
-        }
-
-        if (Md5Util.getMD5String(password).equals(loginAdmin.getPassword())) {
-            Map<String, Object> claims = new HashMap<>();
-            claims.put("userId", loginAdmin.getUserId());
-            claims.put("username", loginAdmin.getUsername());
-            String token = JwtUtil.genToken(claims);
-            return Result.success(token);
-        }
-        return Result.error("密码错误！");
-    }
 }

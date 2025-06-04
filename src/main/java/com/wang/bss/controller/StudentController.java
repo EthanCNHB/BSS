@@ -1,117 +1,121 @@
 package com.wang.bss.controller;
 
-import com.wang.bss.pojo.LoginRequest;
 import com.wang.bss.pojo.Result;
 import com.wang.bss.pojo.Student;
 import com.wang.bss.service.StudentService;
-import com.wang.bss.utils.JwtUtil;
 import com.wang.bss.utils.Md5Util;
 import com.wang.bss.utils.ThreadLocalUtil;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/student")
+@Validated
 public class StudentController {
 
     @Autowired
     private StudentService studentService;
 
-    //添加学生
+    public static class RegisterRequest {
+        @Pattern(regexp = "^\\S{5,16}$", message = "用户名必须为5到16个非空白字符")
+        public String username;
+
+        @Pattern(regexp = "^\\S{5,16}$", message = "密码必须为5到16个非空白字符")
+        public String password;
+    }
+
+    /** 注册新学生 */
     @PostMapping("/register")
-    public Result register(@Pattern(regexp = "^\\S{5,16}$") String username, @Pattern(regexp = "^\\S{5,16}$") String password) {
-        Student std = studentService.findByUsername(username);
-        if (std == null) {
-            studentService.register(username, password);
-            return Result.success();
-        } else {
+    public Result<Void> register(@Valid @RequestBody RegisterRequest req) {
+        Student exists = studentService.findByUsername(req.username);
+        if (exists != null) {
             return Result.error("用户名已存在！");
         }
+        studentService.register(req.username, req.password);
+        return Result.success();
     }
 
-    //学生登录
-    @PostMapping("/login")
-    public Result<String> login(@RequestBody @Validated LoginRequest loginRequest) {
-        String username = loginRequest.getUsername();
-        String password = loginRequest.getPassword();
-
-        Student loginstd = studentService.findByUsername(username);
-
-        if (loginstd == null) {
-            return Result.error("用户名错误！");
-        }
-
-        if (Md5Util.getMD5String(password).equals(loginstd.getPassword())) {
-            Map<String, Object> claims = new HashMap<>();
-            claims.put("userId", loginstd.getUserId());
-            claims.put("username", loginstd.getUsername());
-            String token = JwtUtil.genToken(claims);
-            return Result.success(token);
-        }
-        return Result.error("密码错误！");
-    }
-
-    //查询学生个人资料
+    /** 获取当前学生信息 */
     @GetMapping("/studentInfo")
     public Result<Student> studentInfo() {
-        Map<String, Object> map = ThreadLocalUtil.get();
-        String username = (String) map.get("username");
-
-        // 检查用户是否已认证
-        if (username == null) {
-            return Result.error("未认证"); // 返回未认证状态
-        }
-
-        // 查找学生信息
+        String username = ensureAuthenticated();
         Student student = studentService.findByUsername(username);
         return Result.success(student);
     }
 
-
-    //更改学生资料
+    /** 更新学生信息 */
     @PutMapping("/update")
-    public Result update(@RequestBody @Validated Student student) {
+    public Result<Void> update(@Valid @RequestBody Student student) {
+
         studentService.update(student);
         return Result.success();
-
     }
 
-    //更改学生密码
+    /** 修改密码 */
     @PatchMapping("/updatePwd")
-    public Result updatePwd(@RequestBody Map<String, String> params) {
-        //1.校验参数
+    public Result<Void> updatePwd(@RequestBody Map<String, String> params) {
         String oldPwd = params.get("old_pwd");
         String newPwd = params.get("new_pwd");
-        String rePwd = params.get("re_pwd");
+        String rePwd  = params.get("re_pwd");
 
-        if (!StringUtils.hasLength(oldPwd) || !StringUtils.hasLength(newPwd) || !StringUtils.hasLength(rePwd)) {
+        if (!StringUtils.hasLength(oldPwd)
+                || !StringUtils.hasLength(newPwd)
+                || !StringUtils.hasLength(rePwd)) {
             return Result.error("缺少必要参数！");
         }
 
-        //原密码是否正确
-        //调用teacherService根据用户名拿到原密码，再和old_pwd比对
-        Map<String, Object> map = ThreadLocalUtil.get();
-        String username = (String) map.get("username");
-        Student loginTeacher = studentService.findByUsername(username);
-        if (!loginTeacher.getPassword().equals(Md5Util.getMD5String(oldPwd))) {
+        String username = ensureAuthenticated();
+        Student loginStudent = studentService.findByUsername(username);
+
+        if (!loginStudent.getPassword().equals(Md5Util.getMD5String(oldPwd))) {
             return Result.error("原密码错误！");
         }
-
-        //新旧密码是否一样
-        if (!rePwd.equals(newPwd)) {
-            return Result.error("两次新密码填写的不一样！");
+        if (!newPwd.equals(rePwd)) {
+            return Result.error("两次新密码不一致！");
         }
-
-        //2.调用Service完成密码更新
 
         studentService.updatePwd(newPwd);
         return Result.success();
+    }
 
+    /** 从 ThreadLocal 获取当前用户名，若未认证则抛异常 */
+    private String ensureAuthenticated() {
+        Object obj = ThreadLocalUtil.get();
+        if (!(obj instanceof Map)) {
+            throw new RuntimeException("未认证");
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> user = (Map<String, Object>) obj;
+        String username = (String) user.get("username");
+        if (!StringUtils.hasText(username)) {
+            throw new RuntimeException("未认证");
+        }
+        return username;
+    }
+    /** 根据 userId 查询单个学生信息（管理端使用） */
+    @GetMapping("/{userId}")
+    public Result<Student> getStudentById(@PathVariable Integer userId) {
+        if (userId == null) {
+            return Result.error("缺少 userId");
+        }
+        Student student = studentService.findById(userId);
+        if (student == null) {
+            return Result.error("未找到该学生");
+        }
+        return Result.success(student);
+    }
+
+    /** 查询所有学生列表（管理端使用） */
+    @GetMapping("/list")
+    public Result<List<Student>> listAllStudents() {
+        List<Student> list = studentService.findAll();
+        return Result.success(list);
     }
 }
